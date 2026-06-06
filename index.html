@@ -38,7 +38,7 @@
     </script>
     <style>
         /* Custom Scrollbar for a premium look */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -50,7 +50,6 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
-
         /* Modal transitions */
         .modal-enter { opacity: 0; transform: scale(0.95); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
@@ -58,139 +57,155 @@
         .modal-leave-active { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden selection:bg-brand-gold selection:text-white">
-
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden selection:bg-brand-gold selection:text-white relative">
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2"></div>
 
-
-    <!-- Sidebar -->
-    <aside class="w-72 bg-brand-900 text-white flex flex-col shadow-2xl z-20 transition-all duration-300">
-        <div class="p-6 flex items-center gap-4 border-b border-brand-800/50">
-            <div class="w-12 h-12 rounded-xl bg-white p-1 flex-shrink-0 shadow-lg">
+    <!-- Mobile Header (Visible only on small screens) -->
+    <header class="md:hidden bg-brand-900 text-white p-4 flex justify-between items-center z-20 shadow-md shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-white p-0.5 flex-shrink-0">
                 <img src="https://lh3.googleusercontent.com/d/1a58GZ1_HLpf8bZ3v2ytSPgocZyT9yqkZ" alt="Transwisata Logo" class="w-full h-full object-contain" />
             </div>
-            <div>
-                <h1 class="font-serif text-xl font-bold text-brand-gold leading-tight">Transwisata</h1>
-                <p class="text-xs text-brand-100 tracking-wider">Passenger Form Aplication</p>
+            <h1 class="font-serif text-lg font-bold text-brand-gold leading-tight">Transwisata</h1>
+        </div>
+        <button onclick="toggleSidebar()" class="p-2 bg-brand-800 rounded-lg hover:bg-brand-700 transition-colors">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Overlay for Sidebar -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/60 z-30 hidden md:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed md:relative top-0 left-0 h-full w-72 bg-brand-900 text-white flex flex-col shadow-2xl z-40 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shrink-0">
+        <div class="p-5 md:p-6 flex items-center justify-between border-b border-brand-800/50">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white p-1 flex-shrink-0 shadow-lg">
+                    <img src="https://lh3.googleusercontent.com/d/1a58GZ1_HLpf8bZ3v2ytSPgocZyT9yqkZ" alt="Transwisata Logo" class="w-full h-full object-contain" />
+                </div>
+                <div>
+                    <h1 class="font-serif text-lg md:text-xl font-bold text-brand-gold leading-tight">Transwisata</h1>
+                    <p class="text-[10px] md:text-xs text-brand-100 tracking-wider">PASSENGER APP</p>
+                </div>
             </div>
+            <!-- Close button for mobile inside sidebar -->
+            <button onclick="toggleSidebar()" class="md:hidden p-2 text-brand-100 hover:text-white rounded-lg hover:bg-brand-800 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
         </div>
 
-
-        <nav class="flex-1 py-6 px-4 space-y-2">
+        <nav class="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
             <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 bg-brand-800/50 hover:bg-brand-800 transition-colors">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="font-medium">Dashboard</span>
+                <span class="font-medium text-sm md:text-base">Dashboard</span>
             </button>
             <button onclick="switchView('form')" id="nav-form" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 hover:bg-brand-800 transition-colors">
                 <i data-lucide="file-plus-2" class="w-5 h-5"></i>
-                <span class="font-medium">Create Manifest</span>
+                <span class="font-medium text-sm md:text-base">Create Manifest</span>
             </button>
             <button onclick="switchView('passengers')" id="nav-passengers" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 hover:bg-brand-800 transition-colors">
                 <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="font-medium">Passenger Data</span>
+                <span class="font-medium text-sm md:text-base">Passenger Data</span>
             </button>
         </nav>
 
-
-        <div class="p-6 border-t border-brand-800/50">
+        <div class="p-5 md:p-6 border-t border-brand-800/50">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center text-brand-gold">
+                <div class="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center text-brand-gold shrink-0">
                     <i data-lucide="user" class="w-5 h-5"></i>
                 </div>
                 <div>
                     <p class="text-sm font-medium">Administrator</p>
-                    <p class="text-xs text-brand-100/70">System Ready</p>
+                    <p class="text-xs text-brand-100/70 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> System Ready
+                    </p>
                 </div>
             </div>
         </div>
     </aside>
 
-
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full relative overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+    <main class="flex-1 flex flex-col h-full relative overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] w-full">
         
         <!-- Dashboard View -->
-        <div id="view-dashboard" class="p-8 space-y-8 max-w-7xl mx-auto w-full block">
-            <header class="flex justify-between items-center">
+        <div id="view-dashboard" class="p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto w-full block">
+            <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                    <h2 class="text-3xl font-serif font-bold text-brand-900">Passenger Database</h2>
-                    <p class="text-slate-500 mt-1">Overview of registered passenger manifests.</p>
+                    <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-900">Passenger Database</h2>
+                    <p class="text-sm md:text-base text-slate-500 mt-1">Overview of registered passenger manifests.</p>
                 </div>
-                <button onclick="switchView('form')" class="bg-brand-900 hover:bg-brand-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2 border border-brand-800">
+                <button onclick="switchView('form')" class="bg-brand-900 hover:bg-brand-800 text-white px-5 py-2.5 md:px-6 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-brand-800 w-full sm:w-auto text-sm md:text-base">
                     <i data-lucide="plus" class="w-4 h-4 text-brand-gold"></i>
                     New Manifest
                 </button>
             </header>
 
-
             <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-panel rounded-2xl p-6 border-l-4 border-l-brand-gold flex items-center gap-4">
-                    <div class="p-4 bg-brand-50 rounded-xl text-brand-900">
-                        <i data-lucide="users" class="w-8 h-8"></i>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                <div class="glass-panel rounded-2xl p-5 md:p-6 border-l-4 border-l-brand-gold flex items-center gap-4">
+                    <div class="p-3 md:p-4 bg-brand-50 rounded-xl text-brand-900 shrink-0">
+                        <i data-lucide="users" class="w-6 h-6 md:w-8 md:h-8"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Total Passengers Inputted</p>
-                        <p class="text-3xl font-bold text-brand-900 mt-1" id="stat-total-pax">0</p>
+                        <p class="text-xs md:text-sm font-medium text-slate-500 uppercase tracking-wide">Total Passengers</p>
+                        <p class="text-2xl md:text-3xl font-bold text-brand-900 mt-0.5 md:mt-1" id="stat-total-pax">0</p>
                     </div>
                 </div>
-                <div class="glass-panel rounded-2xl p-6 border-l-4 border-l-brand-500 flex items-center gap-4">
-                    <div class="p-4 bg-blue-50 rounded-xl text-brand-500">
-                        <i data-lucide="plane" class="w-8 h-8"></i>
+                <div class="glass-panel rounded-2xl p-5 md:p-6 border-l-4 border-l-brand-500 flex items-center gap-4">
+                    <div class="p-3 md:p-4 bg-blue-50 rounded-xl text-brand-500 shrink-0">
+                        <i data-lucide="plane" class="w-6 h-6 md:w-8 md:h-8"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Total Manifests</p>
-                        <p class="text-3xl font-bold text-brand-900 mt-1" id="stat-total-manifests">0</p>
+                        <p class="text-xs md:text-sm font-medium text-slate-500 uppercase tracking-wide">Total Manifests</p>
+                        <p class="text-2xl md:text-3xl font-bold text-brand-900 mt-0.5 md:mt-1" id="stat-total-manifests">0</p>
                     </div>
                 </div>
-                <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center">
-                    <p class="text-sm text-slate-500 mb-2">System Status</p>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium">
+                <div class="glass-panel rounded-2xl p-5 md:p-6 flex flex-col justify-center items-center text-center sm:col-span-2 md:col-span-1">
+                    <p class="text-xs md:text-sm text-slate-500 mb-2">System Status</p>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs md:text-sm font-medium">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         Connected to G-Sheets
                     </span>
                 </div>
             </div>
 
-
             <!-- Empty State for Table -->
-            <div class="glass-panel rounded-2xl p-12 text-center border-dashed border-2 border-slate-200">
-                <div class="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-                    <i data-lucide="folder-open" class="w-8 h-8"></i>
+            <div class="glass-panel rounded-2xl p-8 md:p-12 text-center border-dashed border-2 border-slate-200">
+                <div class="mx-auto w-12 h-12 md:w-16 md:h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
+                    <i data-lucide="folder-open" class="w-6 h-6 md:w-8 md:h-8"></i>
                 </div>
-                <h3 class="text-lg font-medium text-slate-900 mb-1">No Data Available Yet</h3>
-                <p class="text-slate-500 mb-4 max-w-sm mx-auto">Create a new manifest to start adding passengers to the database.</p>
+                <h3 class="text-base md:text-lg font-medium text-slate-900 mb-1">No Data Available Yet</h3>
+                <p class="text-sm md:text-base text-slate-500 mb-4 max-w-sm mx-auto">Create a new manifest to start adding passengers to the database.</p>
                 <button onclick="switchView('form')" class="text-brand-500 hover:text-brand-800 font-medium text-sm underline decoration-brand-500/30 underline-offset-4">
                     Create your first manifest
                 </button>
             </div>
         </div>
 
-
         <!-- Passengers Master Database View -->
-        <div id="view-passengers" class="p-8 space-y-6 max-w-7xl mx-auto w-full hidden">
-            <header class="flex justify-between items-center mb-4">
+        <div id="view-passengers" class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full hidden">
+            <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2 md:mb-4">
                 <div>
-                    <h2 class="text-3xl font-serif font-bold text-brand-900">Passenger Database</h2>
-                    <p class="text-slate-500">Manage master data of all registered passengers.</p>
+                    <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-900">Passenger Database</h2>
+                    <p class="text-sm md:text-base text-slate-500 mt-1">Manage master data of all registered passengers.</p>
                 </div>
-                <button onclick="openPaxModal(false)" class="bg-brand-900 hover:bg-brand-800 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2 border border-brand-800">
+                <button onclick="openPaxModal(false)" class="bg-brand-900 hover:bg-brand-800 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-brand-800 w-full sm:w-auto text-sm md:text-base">
                     <i data-lucide="user-plus" class="w-4 h-4 text-brand-gold"></i>
                     Add New Passenger
                 </button>
             </header>
             
-            <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-600 font-medium">
+            <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200 w-full">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
+                        <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 border-b">Full Name</th>
-                                <th class="px-4 py-3 border-b">Sex</th>
-                                <th class="px-4 py-3 border-b">Weight</th>
-                                <th class="px-4 py-3 border-b">Passport Exp</th>
+                                <th class="px-4 py-3 md:py-4 border-b">Full Name</th>
+                                <th class="px-4 py-3 md:py-4 border-b">Sex</th>
+                                <th class="px-4 py-3 md:py-4 border-b">Weight</th>
+                                <th class="px-4 py-3 md:py-4 border-b">Passport Exp</th>
                             </tr>
                         </thead>
                         <tbody id="global-pax-table-body" class="divide-y divide-slate-100 bg-white">
@@ -203,41 +218,39 @@
             </div>
         </div>
 
-
         <!-- Form View -->
-        <div id="view-form" class="p-8 space-y-6 max-w-6xl mx-auto w-full hidden">
-            <header class="flex justify-between items-center mb-4">
+        <div id="view-form" class="p-4 md:p-8 space-y-6 max-w-6xl mx-auto w-full hidden">
+            <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2 md:mb-4">
                 <div>
-                    <h2 class="text-2xl font-serif font-bold text-brand-900">Create New Manifest</h2>
-                    <p class="text-slate-500">Fill in flight details and add passengers.</p>
+                    <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-900">Create New Manifest</h2>
+                    <p class="text-sm md:text-base text-slate-500 mt-1">Fill in flight details and add passengers.</p>
                 </div>
-                <button onclick="switchView('dashboard')" class="text-slate-500 hover:text-brand-900 flex items-center gap-1 text-sm font-medium transition-colors">
+                <button onclick="switchView('dashboard')" class="text-slate-500 hover:text-brand-900 flex items-center gap-1 text-sm md:text-base font-medium transition-colors w-fit">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Dashboard
                 </button>
             </header>
 
-
-            <form id="manifest-form" onsubmit="submitManifest(event)" class="space-y-6">
+            <form id="manifest-form" onsubmit="submitManifest(event)" class="space-y-6 md:space-y-8">
                 <!-- Flight Info Card -->
                 <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200">
-                    <div class="bg-brand-900 p-4 border-b border-brand-800 flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-white flex items-center gap-2">
-                            <i data-lucide="plane-takeoff" class="w-5 h-5 text-brand-gold"></i>
+                    <div class="bg-brand-900 p-3 md:p-4 border-b border-brand-800 flex justify-between items-center">
+                        <h3 class="text-base md:text-lg font-medium text-white flex items-center gap-2">
+                            <i data-lucide="plane-takeoff" class="w-4 h-4 md:w-5 md:h-5 text-brand-gold"></i>
                             Flight Details
                         </h3>
-                        <div class="bg-brand-800/50 px-3 py-1 rounded text-brand-gold font-mono text-sm border border-brand-gold/30">
-                            FORM NO : TWZ - 090
+                        <div class="bg-brand-800/50 px-2 md:px-3 py-1 rounded text-brand-gold font-mono text-xs md:text-sm border border-brand-gold/30">
+                            FORM : TWZ-090
                         </div>
                     </div>
                     
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-white">
-                        <div class="space-y-1">
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</label>
-                            <input type="date" id="flight-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                    <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 bg-white">
+                        <div class="space-y-1 md:space-y-2">
+                            <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</label>
+                            <input type="date" id="flight-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-sm">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">A/C Type</label>
-                            <select id="ac-type" required onchange="handleAcTypeChange()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none appearance-none bg-white">
+                        <div class="space-y-1 md:space-y-2">
+                            <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">A/C Type</label>
+                            <select id="ac-type" required onchange="handleAcTypeChange()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none appearance-none bg-white text-sm">
                                 <option value="" disabled selected>Select A/C Type</option>
                                 <option value="GIV">GIV</option>
                                 <option value="B300">B300</option>
@@ -246,60 +259,58 @@
                                 <option value="A109S">A109S</option>
                             </select>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">A/C Reg</label>
-                            <input type="text" id="ac-reg" readonly placeholder="Auto-filled" class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg font-medium text-brand-900 outline-none">
+                        <div class="space-y-1 md:space-y-2">
+                            <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">A/C Reg</label>
+                            <input type="text" id="ac-reg" readonly placeholder="Auto-filled" class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg font-medium text-brand-900 outline-none text-sm">
                         </div>
-                        <div class="space-y-1 flex gap-2">
-                            <div class="flex-1 space-y-1">
-                                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">From</label>
-                                <input type="text" id="route-from" required placeholder="e.g. HLP" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase">
+                        <div class="space-y-1 md:space-y-2 flex gap-2">
+                            <div class="flex-1 space-y-1 md:space-y-2">
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">From</label>
+                                <input type="text" id="route-from" required placeholder="e.g. HLP" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
                             </div>
-                            <div class="flex-1 space-y-1">
-                                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">To</label>
-                                <input type="text" id="route-to" required placeholder="e.g. DPS" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase">
+                            <div class="flex-1 space-y-1 md:space-y-2">
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">To</label>
+                                <input type="text" id="route-to" required placeholder="e.g. DPS" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
                             </div>
                         </div>
                     </div>
                 </div>
-
 
                 <!-- Crew Data Card -->
                 <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200">
                      <div class="bg-slate-100 p-3 border-b border-slate-200">
-                        <h3 class="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                        <h3 class="text-xs md:text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="users-2" class="w-4 h-4"></i> Crew Data
                         </h3>
                     </div>
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-white">
-                        <div class="space-y-1"><label class="text-xs text-slate-500">SIC 1</label><input type="text" id="crew-sic1" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-xs text-slate-500">SIC 2</label><input type="text" id="crew-sic2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-xs text-slate-500">LEAD PAX</label><input type="text" id="crew-leadpax" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                    <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 bg-white">
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 1</label><input type="text" id="crew-sic1" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 2</label><input type="text" id="crew-sic2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">LEAD PAX</label><input type="text" id="crew-leadpax" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         
-                        <div class="space-y-1"><label class="text-xs text-slate-500">ENGINEER 1</label><input type="text" id="crew-eng1" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-xs text-slate-500">ENGINEER 2</label><input type="text" id="crew-eng2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-xs text-slate-500">FLIGHT SUPPORT</label><input type="text" id="crew-fs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">ENGINEER 1</label><input type="text" id="crew-eng1" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">ENGINEER 2</label><input type="text" id="crew-eng2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">FLIGHT SUPPORT</label><input type="text" id="crew-fs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         
-                        <div class="space-y-1"><label class="text-xs text-slate-500">CABIN SERVICE 1</label><input type="text" id="crew-cs1" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-xs text-slate-500">CABIN SERVICE 2</label><input type="text" id="crew-cs2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 1</label><input type="text" id="crew-cs1" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 2</label><input type="text" id="crew-cs2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                     </div>
                 </div>
 
-
                 <!-- Passengers List Section -->
                 <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200">
-                    <div class="bg-white p-4 border-b border-slate-200 flex justify-between items-center">
+                    <div class="bg-white p-3 md:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <div>
-                            <h3 class="text-lg font-medium text-brand-900">Passenger List</h3>
-                            <p class="text-xs text-slate-500">Total: <span id="current-pax-count" class="font-bold">0</span></p>
+                            <h3 class="text-base md:text-lg font-medium text-brand-900">Passenger List</h3>
+                            <p class="text-[11px] md:text-xs text-slate-500">Total: <span id="current-pax-count" class="font-bold text-brand-600">0</span></p>
                         </div>
-                        <button type="button" onclick="openSelectPaxModal()" class="bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                        <button type="button" onclick="openSelectPaxModal()" class="bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
                             <i data-lucide="list-plus" class="w-4 h-4"></i> Select Passenger
                         </button>
                     </div>
                     
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm whitespace-nowrap">
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
                             <thead class="bg-slate-50 text-slate-600 font-medium">
                                 <tr>
                                     <th class="px-4 py-3 border-b">No.</th>
@@ -319,12 +330,11 @@
                     </div>
                 </div>
 
-
                 <!-- Main Submit Action -->
-                <div class="flex justify-end pt-4">
-                    <button type="submit" id="btn-submit-manifest" class="bg-brand-900 hover:bg-brand-800 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group relative overflow-hidden">
+                <div class="flex justify-end pt-4 pb-12 md:pb-4">
+                    <button type="submit" id="btn-submit-manifest" class="bg-brand-900 hover:bg-brand-800 text-white px-6 md:px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 group relative overflow-hidden w-full sm:w-auto">
                         <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-                        <span class="relative flex items-center gap-2">
+                        <span class="relative flex items-center gap-2 text-sm md:text-base">
                             <i data-lucide="send" class="w-5 h-5"></i>
                             Save to Google Sheets
                         </span>
@@ -334,13 +344,12 @@
         </div>
     </main>
 
-
     <!-- Modal: Select Existing Passenger -->
-    <div id="modal-select-pax" class="fixed inset-0 z-50 hidden items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeSelectPaxModal()"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl h-[80vh] flex flex-col overflow-hidden m-4 modal-enter" id="modal-select-pax-content">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-                <h3 class="text-xl font-serif font-bold text-brand-900">Select Passenger</h3>
+    <div id="modal-select-pax" class="fixed inset-0 z-[55] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeSelectPaxModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl h-[85vh] md:h-[80vh] flex flex-col overflow-hidden m-4 modal-enter" id="modal-select-pax-content">
+            <div class="px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+                <h3 class="text-lg md:text-xl font-serif font-bold text-brand-900">Select Passenger</h3>
                 <button onclick="closeSelectPaxModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -349,7 +358,7 @@
             <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0">
                 <div class="relative">
                     <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="search-pax" oninput="renderSelectPaxList()" placeholder="Search passenger name..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    <input type="text" id="search-pax" oninput="renderSelectPaxList()" placeholder="Search passenger name..." class="w-full pl-9 pr-4 py-2.5 md:py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm">
                 </div>
             </div>
             
@@ -358,37 +367,36 @@
             </div>
             
             <div class="p-4 border-t border-slate-100 bg-white shrink-0">
-                <button onclick="closeSelectPaxModal(); openPaxModal(true);" class="w-full border-2 border-dashed border-brand-200 hover:border-brand-500 text-brand-700 bg-brand-50 hover:bg-brand-100 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
+                <button onclick="closeSelectPaxModal(); openPaxModal(true);" class="w-full border-2 border-dashed border-brand-200 hover:border-brand-500 text-brand-700 bg-brand-50 hover:bg-brand-100 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base">
                     <i data-lucide="user-plus" class="w-4 h-4"></i> Add New Passenger Details
                 </button>
             </div>
         </div>
     </div>
 
-
-    <!-- Modal: Add Passenger -->
-    <div id="modal-pax" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <!-- Modal: Add Passenger Form -->
+    <div id="modal-pax" class="fixed inset-0 z-[55] hidden items-center justify-center">
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closePaxModal()"></div>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closePaxModal()"></div>
         
         <!-- Modal Content -->
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 modal-enter" id="modal-pax-content">
-            <div class="sticky top-0 bg-white z-10 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-xl font-serif font-bold text-brand-900">Add Passenger Details</h3>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 modal-enter flex flex-col" id="modal-pax-content">
+            <div class="sticky top-0 bg-white z-10 px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="text-lg md:text-xl font-serif font-bold text-brand-900">Add Passenger Details</h3>
                 <button onclick="closePaxModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
-            <div class="p-6">
+            <div class="p-4 md:p-6 overflow-y-auto">
                 <form id="add-pax-form" onsubmit="savePassenger(event)" class="space-y-6">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <!-- Left Col: Basic Info -->
-                        <div class="space-y-5">
+                        <div class="space-y-4 md:space-y-5">
                             <div class="space-y-1">
-                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Sex <span class="text-red-500">*</span></label>
-                                <select id="pax-sex" required onchange="handlePaxLogic()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none cursor-pointer transition-colors">
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Sex <span class="text-red-500">*</span></label>
+                                <select id="pax-sex" required onchange="handlePaxLogic()" class="w-full px-3 md:px-4 py-2 md:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none cursor-pointer transition-colors text-sm">
                                     <option value="" disabled selected>Select Sex</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -399,24 +407,22 @@
                                 </select>
                             </div>
 
-
                             <div class="space-y-1 relative">
-                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Full Name <span class="text-red-500">*</span></label>
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Full Name <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <!-- Visual Prefix -->
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <span id="pax-title-display" class="text-brand-gold font-semibold text-sm w-8"></span>
                                     </div>
-                                    <input type="text" id="pax-name" required oninput="formatNameInput(this)" class="w-full pl-12 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400" placeholder="Type name here...">
+                                    <input type="text" id="pax-name" required oninput="formatNameInput(this)" class="w-full pl-12 pr-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" placeholder="Type name here...">
                                 </div>
                                 <p class="text-[10px] text-slate-400 mt-1">Title will be added automatically based on Sex.</p>
                             </div>
 
-
                             <div class="space-y-1">
-                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Weight (kg)</label>
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Weight (kg)</label>
                                 <div class="relative">
-                                    <input type="text" id="pax-weight" readonly class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-medium outline-none cursor-not-allowed">
+                                    <input type="text" id="pax-weight" readonly class="w-full px-3 md:px-4 py-2 md:py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-medium outline-none cursor-not-allowed text-sm">
                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                         <i data-lucide="weight" class="w-4 h-4 text-slate-400"></i>
                                     </div>
@@ -424,27 +430,24 @@
                             </div>
                         </div>
 
-
                         <!-- Right Col: Documents -->
-                        <div class="space-y-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div class="space-y-4 md:space-y-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
                             <h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2 border-b border-slate-200 pb-2">
                                 <i data-lucide="folder-key" class="w-4 h-4 text-brand-500"></i> Documents
                             </h4>
                             
                             <div class="space-y-1">
-                                <label class="text-xs font-medium text-slate-600">Passport Number</label>
+                                <label class="text-[11px] md:text-xs font-medium text-slate-600">Passport Number</label>
                                 <input type="text" id="pax-pass-no" class="w-full px-3 py-2 border border-slate-300 rounded bg-white text-sm focus:ring-1 focus:ring-brand-500 outline-none">
                             </div>
 
-
                             <div class="space-y-1">
-                                <label class="text-xs font-medium text-slate-600">Passport Expiry Date</label>
+                                <label class="text-[11px] md:text-xs font-medium text-slate-600">Passport Expiry Date</label>
                                 <input type="date" id="pax-pass-exp" onchange="checkExpiry()" class="w-full px-3 py-2 border border-slate-300 rounded bg-white text-sm focus:ring-1 focus:ring-brand-500 outline-none">
-                                <div id="expiry-status" class="mt-2 hidden items-center gap-2 px-2 py-1.5 rounded text-xs font-medium">
+                                <div id="expiry-status" class="mt-2 hidden items-center gap-2 px-2 py-1.5 rounded text-[11px] font-medium">
                                     <!-- Injected via JS -->
                                 </div>
                             </div>
-
 
                             <div class="space-y-3 pt-2">
                                 <div>
@@ -463,10 +466,9 @@
                         </div>
                     </div>
 
-
-                    <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-                        <button type="button" onclick="closePaxModal()" class="px-5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition-colors">Cancel</button>
-                        <button type="submit" class="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-lg font-medium shadow transition-colors flex items-center gap-2">
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-100">
+                        <button type="button" onclick="closePaxModal()" class="w-full sm:w-auto px-5 py-2.5 md:py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition-colors order-2 sm:order-1 text-sm md:text-base">Cancel</button>
+                        <button type="submit" class="w-full sm:w-auto bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 md:py-2 rounded-lg font-medium shadow transition-colors flex items-center justify-center gap-2 order-1 sm:order-2 text-sm md:text-base">
                             <i data-lucide="check-circle" class="w-4 h-4"></i> Add to List
                         </button>
                     </div>
@@ -474,7 +476,6 @@
             </div>
         </div>
     </div>
-
 
     <script>
         // --- KONFIGURASI GOOGLE SHEETS ---
@@ -490,10 +491,22 @@
         let currentRawName = ""; // Simpan nama asli tanpa title
         let currentTitle = ""; // Simpan title saat ini
 
-
         // Initialize Icons
         lucide.createIcons();
 
+        // --- Mobile Sidebar Toggle ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
 
         // --- UI Navigation ---
         function switchView(viewId) {
@@ -508,8 +521,15 @@
                 btn.classList.remove('bg-brand-800/50');
             });
             document.getElementById(`nav-${viewId}`).classList.add('bg-brand-800/50');
-        }
 
+            // Auto close sidebar on mobile after clicking a link
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
+                }
+            }
+        }
 
         // --- Notification System ---
         function showToast(message, type = 'success') {
@@ -519,11 +539,10 @@
             const bgClass = type === 'success' ? 'bg-emerald-500' : (type === 'error' ? 'bg-red-500' : 'bg-brand-500');
             const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : 'info');
 
-
-            toast.className = `${bgClass} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-x-full opacity-0`;
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-x-full opacity-0 text-sm md:text-base w-max max-w-[90vw]`;
             toast.innerHTML = `
-                <i data-lucide="${icon}" class="w-5 h-5"></i>
-                <p class="text-sm font-medium">${message}</p>
+                <i data-lucide="${icon}" class="w-5 h-5 shrink-0"></i>
+                <p class="font-medium truncate">${message}</p>
             `;
             
             container.appendChild(toast);
@@ -534,14 +553,12 @@
                 toast.classList.remove('translate-x-full', 'opacity-0');
             }, 10);
 
-
             // Animate out and remove
             setTimeout(() => {
                 toast.classList.add('translate-x-full', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
-
 
         // --- Logic: A/C Type to A/C Reg ---
         function handleAcTypeChange() {
@@ -559,7 +576,6 @@
             regInput.value = mapping[type] || '';
         }
 
-
         // --- Select Passenger Modal Control (Pilih dari Database) ---
         function openSelectPaxModal() {
             document.getElementById('search-pax').value = '';
@@ -576,7 +592,6 @@
             }, 10);
         }
 
-
         function closeSelectPaxModal() {
             const modal = document.getElementById('modal-select-pax');
             const content = document.getElementById('modal-select-pax-content');
@@ -592,7 +607,6 @@
             }, 200);
         }
 
-
         function renderSelectPaxList() {
             const searchTerm = document.getElementById('search-pax').value.toLowerCase();
             const listContainer = document.getElementById('select-pax-list');
@@ -606,12 +620,10 @@
                 return;
             }
 
-
             if (filtered.length === 0) {
                 listContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">No passengers found matching "${searchTerm}".</div>`;
                 return;
             }
-
 
             listContainer.innerHTML = '';
             filtered.forEach(pax => {
@@ -624,15 +636,14 @@
                             <p class="font-bold text-brand-900 text-sm">${pax.name}</p>
                             <p class="text-xs text-slate-500 mt-0.5">${pax.sex} • Passport: ${pax.passNo}</p>
                         </div>
-                        <button type="button" onclick="addExistingPaxToManifest(${pax.id})" ${isAdded ? 'disabled' : ''} class="px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${isAdded ? 'bg-emerald-50 text-emerald-600 cursor-not-allowed border border-emerald-200' : 'bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200'}">
-                            ${isAdded ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline mr-1"></i> Added' : 'Select'}
+                        <button type="button" onclick="addExistingPaxToManifest(${pax.id})" ${isAdded ? 'disabled' : ''} class="px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs font-semibold transition-colors ${isAdded ? 'bg-emerald-50 text-emerald-600 cursor-not-allowed border border-emerald-200' : 'bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200'}">
+                            ${isAdded ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline md:mr-1"></i> <span class="hidden md:inline">Added</span>' : 'Select'}
                         </button>
                     </div>
                 `;
             });
             lucide.createIcons({root: listContainer});
         }
-
 
         function addExistingPaxToManifest(paxId) {
             const pax = globalPassengers.find(p => p.id === paxId);
@@ -643,7 +654,6 @@
                 renderSelectPaxList(); // Update tampilan tombol select menjadi 'Added'
             }
         }
-
 
         // --- Add New Passenger Modal Control (Form) ---
         function openPaxModal(forManifest = false) {
@@ -666,7 +676,6 @@
             }, 10);
         }
 
-
         function closePaxModal() {
             const modal = document.getElementById('modal-pax');
             const content = document.getElementById('modal-pax-content');
@@ -682,10 +691,8 @@
             }, 200);
         }
 
-
         // --- Logic: Name Capitalization & Title ---
         function formatNameInput(input) {
-            // Kapitalisasi setiap awal kata
             let val = input.value;
             let words = val.split(' ');
             for(let i=0; i<words.length; i++) {
@@ -697,14 +704,12 @@
             input.value = currentRawName;
         }
 
-
         function getTitleFromSex(sex) {
             if (['Male', 'Male Child', 'Male Infant'].includes(sex)) return 'Mr.';
             if (sex === 'Female') return 'Mrs.';
             if (['Female Child', 'Female Infant'].includes(sex)) return 'Ms.';
             return '';
         }
-
 
         // --- Logic: Weight Auto-fill & Trigger Title ---
         function handlePaxLogic() {
@@ -713,7 +718,6 @@
             const titleDisplay = document.getElementById('pax-title-display');
             const nameInput = document.getElementById('pax-name');
             
-            // 1. Update Weight
             if (['Male', 'Female'].includes(sex)) {
                 weightInput.value = '70';
             } else if (['Male Child', 'Female Child'].includes(sex)) {
@@ -724,17 +728,13 @@
                 weightInput.value = '';
             }
 
-
-            // 2. Update Title Display
             currentTitle = getTitleFromSex(sex);
             titleDisplay.innerText = currentTitle;
             
-            // Adjust padding based on title length
             if(currentTitle) {
                 nameInput.classList.replace('pl-12', currentTitle.length > 3 ? 'pl-16' : 'pl-12');
             }
         }
-
 
         // --- Logic: Passport Expiry Calculation ---
         function checkExpiry() {
@@ -746,22 +746,17 @@
                 return;
             }
 
-
             const today = new Date();
             const expiry = new Date(expDate);
             
-            // Menghitung selisih waktu dalam milliseconds
             const diffTime = expiry - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const diffMonths = diffDays / 30.44; // rata-rata hari dalam sebulan
-
+            const diffMonths = diffDays / 30.44; 
 
             statusDiv.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-700', 'bg-amber-100', 'text-amber-700', 'bg-red-100', 'text-red-700');
             statusDiv.innerHTML = '';
 
-
             let icon, text, colorClass;
-
 
             if (diffDays < 0) {
                 icon = 'alert-triangle';
@@ -771,60 +766,36 @@
                 icon = 'clock';
                 const m = Math.floor(diffMonths);
                 const d = Math.floor(diffDays % 30.44);
-                text = `Expiring soon: ${m} month(s) ${d} day(s)`;
+                text = `Expiring soon: ${m}m ${d}d`;
                 colorClass = 'bg-amber-100 text-amber-700';
             } else {
                 icon = 'shield-check';
                 const m = Math.floor(diffMonths);
-                text = `Valid (> 6 months): ~${m} months left`;
+                text = `Valid: ~${m}m left`;
                 colorClass = 'bg-emerald-100 text-emerald-700';
             }
 
-
-            statusDiv.className = `mt-2 flex items-center gap-2 px-3 py-2 rounded border-l-4 ${colorClass.replace('text-', 'border-').split(' ')[0]} ${colorClass}`;
-            statusDiv.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> <span>${text}</span>`;
+            statusDiv.className = `mt-2 flex items-center gap-2 px-3 py-2 rounded border-l-4 ${colorClass.replace('text-', 'border-').split(' ')[0]} ${colorClass} text-[11px] md:text-xs`;
+            statusDiv.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5"></i> <span>${text}</span>`;
             lucide.createIcons({root: statusDiv});
         }
-
-
-        // --- Helper: Convert File to Base64 (untuk Google Sheets) ---
-        function getBase64(file) {
-            return new Promise((resolve, reject) => {
-                if(!file) resolve("");
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]); // Hanya ambil base64 string
-                reader.onerror = error => reject(error);
-            });
-        }
-
 
         // --- Save Passenger locally ---
         async function savePassenger(e) {
             e.preventDefault();
             
-            // Gabungkan Title dan Name untuk disimpan
             const fullName = `${currentTitle} ${currentRawName}`.trim();
             const sex = document.getElementById('pax-sex').value;
             const weight = document.getElementById('pax-weight').value;
             const passNo = document.getElementById('pax-pass-no').value;
             const passExp = document.getElementById('pax-pass-exp').value;
             
-            // Visual feedback on button
             const btn = e.target.querySelector('button[type="submit"]');
             const originalHTML = btn.innerHTML;
             btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing...`;
             btn.disabled = true;
 
-
             try {
-                // Handle files (simulated for now, actually reads to base64)
-                const ktpFile = document.getElementById('pax-file-ktp').files[0];
-                const passFile = document.getElementById('pax-file-pass').files[0];
-                
-                // We keep filename just for display in table, base64 for actual submission later
-                const ktpName = ktpFile ? ktpFile.name : '-';
-                
                 const pax = {
                     id: Date.now(),
                     name: fullName,
@@ -832,22 +803,14 @@
                     weight: weight,
                     passNo: passNo || '-',
                     passExp: passExp || '-',
-                    // Uncomment di bawah ini jika ingin mengirim file ke Apps Script
-                    // ktpBase64: await getBase64(ktpFile), 
-                    // passBase64: await getBase64(passFile)
                 };
 
-
-                // 1. Simpan ke Global Database Penumpang
                 globalPassengers.push(pax);
                 updateGlobalPaxTable();
                 
-                // Update stats dashboard
                 totalGlobalPax = globalPassengers.length;
                 document.getElementById('stat-total-pax').innerText = totalGlobalPax;
 
-
-                // 2. Jika dibuka dari pembuatan Manifest, langsung tambahkan ke list manifest
                 if (isAddingForManifest) {
                     currentPassengers.push(pax);
                     updatePaxTable();
@@ -856,7 +819,6 @@
                 showToast(`Passenger ${fullName} saved to database!`, 'success');
                 closePaxModal();
                 
-                // Jika dari manifest, buka kembali selection modal agar user bisa melihat daftarnya
                 if(isAddingForManifest) {
                     setTimeout(() => {
                         openSelectPaxModal();
@@ -872,21 +834,18 @@
             }
         }
 
-
         function removePax(id) {
             currentPassengers = currentPassengers.filter(p => p.id !== id);
             updatePaxTable();
         }
 
-
         function updateGlobalPaxTable() {
             const tbody = document.getElementById('global-pax-table-body');
             
             if (globalPassengers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">No passengers in database. Add one to get started.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers in database. Add one to get started.</td></tr>`;
                 return;
             }
-
 
             tbody.innerHTML = '';
             globalPassengers.forEach((pax) => {
@@ -898,18 +857,16 @@
                     else expColor = 'text-emerald-500 font-semibold';
                 }
 
-
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
-                        <td class="px-4 py-3 font-medium text-brand-900">${pax.name}</td>
-                        <td class="px-4 py-3 text-slate-600">${pax.sex}</td>
-                        <td class="px-4 py-3 text-slate-600">${pax.weight} kg</td>
-                        <td class="px-4 py-3 ${expColor}">${pax.passExp}</td>
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm">
+                        <td class="px-4 py-3 md:py-4 font-medium text-brand-900">${pax.name}</td>
+                        <td class="px-4 py-3 md:py-4 text-slate-600">${pax.sex}</td>
+                        <td class="px-4 py-3 md:py-4 text-slate-600">${pax.weight} kg</td>
+                        <td class="px-4 py-3 md:py-4 ${expColor}">${pax.passExp}</td>
                     </tr>
                 `;
             });
         }
-
 
         function updatePaxTable() {
             const tbody = document.getElementById('pax-table-body');
@@ -917,12 +874,10 @@
             
             countSpan.innerText = currentPassengers.length;
 
-
             if (currentPassengers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 italic">No passengers added yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers added yet.</td></tr>`;
                 return;
             }
-
 
             tbody.innerHTML = '';
             currentPassengers.forEach((pax, index) => {
@@ -934,16 +889,15 @@
                     else expColor = 'text-emerald-500 font-semibold';
                 }
 
-
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors">
+                    <tr class="hover:bg-slate-50 transition-colors text-xs md:text-sm">
                         <td class="px-4 py-3">${index + 1}</td>
                         <td class="px-4 py-3 font-medium text-brand-900">${pax.name}</td>
                         <td class="px-4 py-3 text-slate-600">${pax.sex}</td>
                         <td class="px-4 py-3 text-slate-600">${pax.weight} kg</td>
                         <td class="px-4 py-3 ${expColor}">${pax.passExp}</td>
                         <td class="px-4 py-3 text-right">
-                            <button type="button" onclick="removePax(${pax.id})" class="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors">
+                            <button type="button" onclick="removePax(${pax.id})" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
@@ -952,7 +906,6 @@
             });
             lucide.createIcons({root: tbody});
         }
-
 
         // --- Submit Seluruh Manifest ke Google Sheets ---
         async function submitManifest(e) {
@@ -963,14 +916,11 @@
                 return;
             }
 
-
             const btn = document.getElementById('btn-submit-manifest');
             const originalContent = btn.innerHTML;
             btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing & Uploading...`;
             btn.disabled = true;
 
-
-            // Kumpulkan Data Form
             const payload = {
                 formNo: "TWZ - 090",
                 date: document.getElementById('flight-date').value,
@@ -991,28 +941,21 @@
                 passengers: currentPassengers
             };
 
-
-            console.log("Data to submit:", payload);
-
-
             if (GOOGLE_SHEET_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
-                // Simulasi Sukses jika URL belum diganti
                 setTimeout(() => {
                     simulateSuccess(btn, originalContent);
                 }, 1500);
             } else {
-                // Proses fetch ke Google Apps Script (AJAX POST)
                 try {
                     const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // Ditambahkan untuk mencegah error CORS (Failed to fetch) dari browser
+                        mode: 'no-cors',
                         headers: {
-                            'Content-Type': 'text/plain;charset=utf-8', // Menggunakan text/plain agar tidak memicu preflight check OPTIONS
+                            'Content-Type': 'text/plain;charset=utf-8', 
                         },
                         body: JSON.stringify(payload)
                     });
                     
-                    // Asumsi sukses karena mode 'no-cors' membuat response menjadi opaque (tidak bisa dibaca statusnya)
                     simulateSuccess(btn, originalContent);
                 } catch (error) {
                     console.error("Error submitting to Sheets:", error);
@@ -1023,17 +966,12 @@
             }
         }
 
-
         function simulateSuccess(btn, originalContent) {
             showToast("Manifest Successfully Saved to Database!", "success");
             
-            // Update Mock Dashboard Stats
             totalManifests++;
-            totalGlobalPax += currentPassengers.length;
             document.getElementById('stat-total-manifests').innerText = totalManifests;
-            document.getElementById('stat-total-pax').innerText = totalGlobalPax;
             
-            // Reset Form & State
             document.getElementById('manifest-form').reset();
             currentPassengers = [];
             updatePaxTable();
@@ -1041,12 +979,10 @@
             btn.innerHTML = originalContent;
             btn.disabled = false;
             
-            // Kembali ke dashboard
             setTimeout(() => {
                 switchView('dashboard');
             }, 1000);
         }
-
 
     </script>
 </body>
