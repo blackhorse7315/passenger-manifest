@@ -29,7 +29,7 @@
                             500: '#334e68',
                             800: '#102a43',
                             900: '#0b1d2e',
-                            gold: '#d4af37' // Luxury accent
+                            gold: '#d4af37'
                         }
                     }
                 }
@@ -37,7 +37,6 @@
         }
     </script>
     <style>
-        /* Custom Scrollbar for a premium look */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -50,7 +49,6 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
-        /* Modal transitions */
         .modal-enter { opacity: 0; transform: scale(0.95); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
         .modal-leave { opacity: 1; transform: scale(1); }
@@ -59,10 +57,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden selection:bg-brand-gold selection:text-white relative">
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed top-4 right-4 z-[70] flex flex-col gap-2"></div>
 
-    <!-- Mobile Header (Visible only on small screens) -->
+    <!-- Mobile Header -->
     <header class="md:hidden bg-brand-900 text-white p-4 flex justify-between items-center z-20 shadow-md shrink-0">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-white p-0.5 flex-shrink-0">
@@ -149,7 +146,6 @@
                 </button>
             </header>
 
-            <!-- Stats -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 <div class="glass-panel rounded-2xl p-5 md:p-6 border-l-4 border-l-brand-gold flex items-center gap-4">
                     <div class="p-3 md:p-4 bg-brand-50 rounded-xl text-brand-900 shrink-0">
@@ -200,7 +196,6 @@
                 </div>
             </header>
 
-            <!-- Table for Manifests -->
             <div id="manifest-table-container" class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200 w-full hidden">
                 <div class="overflow-x-auto w-full">
                     <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
@@ -214,13 +209,11 @@
                             </tr>
                         </thead>
                         <tbody id="manifest-table-body" class="divide-y divide-slate-100 bg-white">
-                            <!-- Data injected via JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Empty State for Table -->
             <div id="manifest-empty-state" class="glass-panel rounded-2xl p-8 md:p-12 text-center border-dashed border-2 border-slate-200 block">
                 <div class="mx-auto w-12 h-12 md:w-16 md:h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
                     <i data-lucide="folder-open" class="w-6 h-6 md:w-8 md:h-8"></i>
@@ -263,9 +256,6 @@
                             </tr>
                         </thead>
                         <tbody id="global-pax-table-body" class="divide-y divide-slate-100 bg-white">
-                            <tr>
-                                <td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">No passengers in database. Add one to get started.</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -301,9 +291,6 @@
                             </tr>
                         </thead>
                         <tbody id="global-crew-table-body" class="divide-y divide-slate-100 bg-white">
-                            <tr>
-                                <td colspan="3" class="px-4 py-8 text-center text-slate-400 italic">No crew in database. Add one to get started.</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -359,12 +346,20 @@
                         <div class="space-y-1 md:space-y-2 flex gap-2">
                             <div class="flex-1 space-y-1 md:space-y-2">
                                 <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">From</label>
-                                <input type="text" id="route-from" required placeholder="e.g. HLP" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
+                                <div class="flex gap-1">
+                                    <input type="text" id="route-from" required placeholder="e.g. HLP" list="airports-datalist" oninput="this.value = this.value.toUpperCase()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
+                                    <button type="button" onclick="openAirportModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Airport"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                </div>
                             </div>
                             <div class="flex-1 space-y-1 md:space-y-2">
                                 <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">To</label>
-                                <input type="text" id="route-to" required placeholder="e.g. DPS" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
+                                <div class="flex gap-1">
+                                    <input type="text" id="route-to" required placeholder="e.g. DPS" list="airports-datalist" oninput="this.value = this.value.toUpperCase()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
+                                    <button type="button" onclick="openAirportModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Airport"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                </div>
                             </div>
+                            <!-- Datalist for Airports -->
+                            <datalist id="airports-datalist"></datalist>
                         </div>
                     </div>
                 </div>
@@ -437,6 +432,39 @@
             </form>
         </div>
     </main>
+
+    <!-- Modal: Add New Airport -->
+    <div id="modal-airport" class="fixed inset-0 z-[60] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeAirportModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm m-4 modal-enter flex flex-col" id="modal-airport-content">
+            <div class="px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="text-lg md:text-xl font-serif font-bold text-brand-900 flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-5 h-5 text-brand-gold"></i> Add New Airport
+                </h3>
+                <button onclick="closeAirportModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <form id="add-airport-form" onsubmit="saveAirport(event)" class="space-y-5">
+                    <div class="space-y-1">
+                        <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Airport Code <span class="text-red-500">*</span></label>
+                        <input type="text" id="airport-code" required class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm uppercase" oninput="this.value = this.value.toUpperCase()" placeholder="e.g. HLP">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Location / Name</label>
+                        <input type="text" id="airport-name" class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" placeholder="e.g. Halim Perdanakusuma">
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeAirportModal()" class="w-full sm:w-auto px-5 py-2.5 md:py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition-colors text-sm md:text-base">Cancel</button>
+                        <button type="submit" class="w-full sm:w-auto bg-brand-900 hover:bg-brand-800 text-white px-6 py-2.5 md:py-2 rounded-lg font-medium shadow transition-colors flex items-center justify-center gap-2 text-sm md:text-base">
+                            <i data-lucide="save" class="w-4 h-4 text-brand-gold"></i> Save Airport
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Select Existing Passenger -->
     <div id="modal-select-pax" class="fixed inset-0 z-[55] hidden items-center justify-center">
@@ -698,7 +726,6 @@
                         <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Sign URL</label>
                         <input type="text" id="edit-crew-sign-url" oninput="previewCrewSign()" class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" placeholder="Paste Google Drive URL here...">
                         
-                        <!-- Image Preview Container -->
                         <div id="crew-sign-preview-container" class="mt-2 hidden border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col items-center justify-center min-h-[80px]">
                             <img id="crew-sign-preview-img" src="" alt="Signature Preview" class="max-h-20 object-contain mix-blend-multiply" onerror="this.classList.add('hidden'); document.getElementById('crew-sign-error').classList.remove('hidden');" onload="this.classList.remove('hidden'); document.getElementById('crew-sign-error').classList.add('hidden');">
                             <div id="crew-sign-error" class="text-center hidden w-full py-2">
@@ -739,7 +766,7 @@
     <script>
         // --- KONFIGURASI GOOGLE SHEETS ---
         // Ganti URL ini dengan URL Web App dari Google Apps Script Anda
-        const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzXWZFKE-mdzQiRS0dVEI5Iwbm-rRmTLdqo_atEImcxPFTsdvBkDBEbeN4GN0O3t-hP/exec";
+        const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWr8AifQBf935pahQMCNqPl7D3F5zOxRSvmxMPQqpFgMynL2wfNjJWDxnclstXfoBN/exec";
         
         // --- Helper: Send data to Google Sheets silently ---
         function sendToGoogleSheets(payload) {
@@ -777,26 +804,23 @@
                         if (result.passengers) {
                             globalPassengers = result.passengers;
                             updateGlobalPaxTable();
-                            
                             totalGlobalPax = globalPassengers.length;
                             document.getElementById('stat-total-pax').innerText = totalGlobalPax;
                         }
-                        
-                        // Menjalankan fungsi ini jika data manifest ada
                         if (result.manifests) {
                             globalManifests = result.manifests;
                             updateManifestTable(); 
-                            
                             totalManifests = result.manifestCount || globalManifests.length;
                             document.getElementById('stat-total-manifests').innerText = totalManifests;
                         }
-                        
-                        // Menjalankan fungsi ini jika data crew ada
                         if (result.crews) {
                             globalCrews = result.crews;
                             updateGlobalCrewTable();
                         }
-                        
+                        if (result.airports) {
+                            globalAirports = result.airports;
+                            updateAirportDatalist();
+                        }
                         if (isManual) showToast("Data berhasil disinkronisasi!", "success");
                     }
                 } catch (parseError) {
@@ -822,6 +846,7 @@
         let currentPassengers = []; 
         let globalManifests = []; 
         let globalCrews = []; 
+        let globalAirports = []; 
         let isAddingForManifest = false; 
         let totalGlobalPax = 0; 
         let totalManifests = 0; 
@@ -1110,6 +1135,68 @@
             };
             
             regInput.value = mapping[type] || '';
+        }
+
+        // --- Airport Logic ---
+        function updateAirportDatalist() {
+            const dl = document.getElementById('airports-datalist');
+            if(!dl) return;
+            let options = '';
+            globalAirports.forEach(a => {
+                options += `<option value="${a.code}">${a.name}</option>`;
+            });
+            dl.innerHTML = options;
+        }
+
+        function openAirportModal() {
+            document.getElementById('add-airport-form').reset();
+            const modal = document.getElementById('modal-airport');
+            const content = document.getElementById('modal-airport-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        function closeAirportModal() {
+            const modal = document.getElementById('modal-airport');
+            const content = document.getElementById('modal-airport-content');
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+            }, 200);
+        }
+
+        async function saveAirport(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            const code = document.getElementById('airport-code').value.toUpperCase();
+            const name = document.getElementById('airport-name').value;
+
+            try {
+                const airport = { code, name };
+                globalAirports.push(airport);
+                updateAirportDatalist();
+                sendToGoogleSheets({ action: 'saveAirport', data: airport });
+                showToast("Airport saved successfully!", "success");
+                closeAirportModal();
+            } catch(e) {
+                showToast("Error saving airport", "error");
+            } finally {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+                lucide.createIcons({root:btn});
+            }
         }
 
         // --- Modal Control: Select Existing Passenger ---
@@ -1757,14 +1844,12 @@
                 return;
             }
 
-            // Reset error state
             if(errorMsg) errorMsg.classList.add('hidden');
             previewImg.classList.remove('hidden');
 
             const match = urlInput.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
                 const fileId = match[1];
-                // Menggunakan endpoint lh3 Google untuk bypass pemblokiran render Google Drive terbaru
                 const directUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
                 previewImg.src = directUrl;
                 previewContainer.classList.remove('hidden');
