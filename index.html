@@ -244,6 +244,11 @@
                 </div>
             </header>
             
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-global-pax" oninput="updateGlobalPaxTable()" placeholder="Search passenger by name or passport..." class="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white shadow-sm">
+            </div>
+
             <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200 w-full">
                 <div class="overflow-x-auto w-full">
                     <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
@@ -285,8 +290,7 @@
                     <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
                         <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 md:py-4 border-b">Name</th>
-                                <th class="px-4 py-3 md:py-4 border-b">Rank</th>
+                                <th class="px-4 py-3 md:py-4 border-b">Crew Name</th>
                                 <th class="px-4 py-3 md:py-4 border-b text-right w-32">Action</th>
                             </tr>
                         </thead>
@@ -323,7 +327,8 @@
                         </div>
                     </div>
                     
-                    <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 bg-white">
+                    <!-- Diubah menjadi lg:grid-cols-5 agar 5 kolom muat sejajar -->
+                    <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 bg-white">
                         <div class="space-y-1 md:space-y-2">
                             <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</label>
                             <input type="date" id="flight-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-sm">
@@ -361,6 +366,11 @@
                             <!-- Datalist for Airports -->
                             <datalist id="airports-datalist"></datalist>
                         </div>
+                        <!-- Kolom Lead Pax dipindah ke sini -->
+                        <div class="space-y-1 md:space-y-2">
+                            <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Lead Pax</label>
+                            <input type="text" id="crew-leadpax" placeholder="e.g. John Doe" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-sm">
+                        </div>
                     </div>
                 </div>
 
@@ -371,18 +381,24 @@
                             <i data-lucide="users-2" class="w-4 h-4"></i> Crew Data
                         </h3>
                     </div>
+                    <!-- Kolom Lead pax sudah dihilangkan dari sini -->
                     <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 bg-white">
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">PIC</label><input type="text" id="crew-pic" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 1</label><input type="text" id="crew-sic1" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 2</label><input type="text" id="crew-sic2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">LEAD PAX</label><input type="text" id="crew-leadpax" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">PIC</label><input type="text" id="crew-pic" list="dl-pilots" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 1</label><input type="text" id="crew-sic1" list="dl-pilots" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 2</label><input type="text" id="crew-sic2" list="dl-pilots" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">ENGINEER 1</label><input type="text" id="crew-eng1" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">ENGINEER 2</label><input type="text" id="crew-eng2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">FLIGHT SUPPORT</label><input type="text" id="crew-fs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">ENGINEER 1</label><input type="text" id="crew-eng1" list="dl-engs" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">ENGINEER 2</label><input type="text" id="crew-eng2" list="dl-engs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">FLIGHT SUPPORT</label><input type="text" id="crew-fs" list="dl-fs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 1</label><input type="text" id="crew-cs1" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
-                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 2</label><input type="text" id="crew-cs2" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 1</label><input type="text" id="crew-cs1" list="dl-cs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 2</label><input type="text" id="crew-cs2" list="dl-cs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        
+                        <!-- Datalists for Crew Auto-suggestions -->
+                        <datalist id="dl-pilots"></datalist>
+                        <datalist id="dl-engs"></datalist>
+                        <datalist id="dl-cs"></datalist>
+                        <datalist id="dl-fs"></datalist>
                     </div>
                 </div>
 
@@ -525,13 +541,11 @@
                                 </select>
                             </div>
 
-                            <div class="space-y-1 relative">
-                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Full Name <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span id="pax-title-display" class="text-brand-gold font-semibold text-sm w-8"></span>
-                                    </div>
-                                    <input type="text" id="pax-name" required oninput="formatNameInput(this)" class="w-full pl-12 pr-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" placeholder="Type name here...">
+                            <div class="space-y-1">
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Title & Full Name <span class="text-red-500">*</span></label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="pax-title" readonly class="w-16 md:w-20 px-2 py-2 md:py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-medium outline-none cursor-not-allowed text-sm text-center" placeholder="-">
+                                    <input type="text" id="pax-name" required oninput="formatNameInput(this)" class="flex-1 px-3 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" placeholder="Type name here...">
                                 </div>
                                 <p class="text-[10px] text-slate-400 mt-1">Title will be added automatically based on Sex.</p>
                             </div>
@@ -607,9 +621,12 @@
                                 </select>
                             </div>
 
-                            <div class="space-y-1 relative">
-                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Full Name <span class="text-red-500">*</span></label>
-                                <input type="text" id="edit-pax-name" required oninput="formatEditNameInput(this)" class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm">
+                            <div class="space-y-1">
+                                <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Title & Full Name <span class="text-red-500">*</span></label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="edit-pax-title" readonly class="w-16 md:w-20 px-2 py-2 md:py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-medium outline-none cursor-not-allowed text-sm text-center" placeholder="-">
+                                    <input type="text" id="edit-pax-name" required oninput="formatEditNameInput(this)" class="flex-1 px-3 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm">
+                                </div>
                             </div>
 
                             <div class="space-y-1">
@@ -816,6 +833,7 @@
                         if (result.crews) {
                             globalCrews = result.crews;
                             updateGlobalCrewTable();
+                            updateCrewDatalists();
                         }
                         if (result.airports) {
                             globalAirports = result.airports;
@@ -878,22 +896,29 @@
 
         // --- UI Navigation ---
         function switchView(viewId) {
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-form').classList.add('hidden');
-            document.getElementById('view-passengers').classList.add('hidden');
-            document.getElementById('view-manifests').classList.add('hidden');
-            document.getElementById('view-crew').classList.add('hidden');
+            // Hide all views first
+            const views = ['dashboard', 'form', 'passengers', 'manifests', 'crew'];
+            views.forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if (el) el.classList.add('hidden');
+            });
             
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            // Show target view
+            const targetView = document.getElementById(`view-${viewId}`);
+            if (targetView) targetView.classList.remove('hidden');
             
+            // Update active state in sidebar safely
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-brand-800/50');
             });
-            document.getElementById(`nav-${viewId}`).classList.add('bg-brand-800/50');
+            
+            const targetNav = document.getElementById(`nav-${viewId}`);
+            if (targetNav) targetNav.classList.add('bg-brand-800/50');
 
+            // Auto close sidebar on mobile
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
-                if (!sidebar.classList.contains('-translate-x-full')) {
+                if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
                     toggleSidebar();
                 }
             }
@@ -1094,6 +1119,38 @@
             showToast("Manifest deleted successfully.", "success");
         }
 
+        // --- Logic: Crew Datalists (Auto-suggestions) ---
+        function updateCrewDatalists() {
+            const dlPilots = document.getElementById('dl-pilots');
+            const dlEngs = document.getElementById('dl-engs');
+            const dlCs = document.getElementById('dl-cs');
+            const dlFs = document.getElementById('dl-fs');
+            
+            if (!dlPilots || !dlEngs || !dlCs || !dlFs) return;
+
+            let pilotsOptions = '';
+            let engsOptions = '';
+            let csOptions = '';
+            let fsOptions = '';
+
+            globalCrews.forEach(c => {
+                if (c.rank === 'Capt' || c.rank === 'FO') {
+                    pilotsOptions += `<option value="${c.name}">${c.rank}</option>`;
+                } else if (c.rank === 'Eng') {
+                    engsOptions += `<option value="${c.name}">${c.rank}</option>`;
+                } else if (c.rank === 'Cs') {
+                    csOptions += `<option value="${c.name}">${c.rank}</option>`;
+                } else if (c.rank === 'HLO' || c.rank === 'FOO') {
+                    fsOptions += `<option value="${c.name}">${c.rank}</option>`;
+                }
+            });
+
+            dlPilots.innerHTML = pilotsOptions;
+            dlEngs.innerHTML = engsOptions;
+            dlCs.innerHTML = csOptions;
+            dlFs.innerHTML = fsOptions;
+        }
+
         // --- Notification System ---
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -1290,9 +1347,6 @@
             isAddingForManifest = forManifest;
             document.getElementById('add-pax-form').reset();
             document.getElementById('expiry-status').classList.add('hidden');
-            document.getElementById('pax-title-display').innerText = '';
-            currentRawName = "";
-            currentTitle = "";
             
             const modal = document.getElementById('modal-pax');
             const content = document.getElementById('modal-pax-content');
@@ -1331,12 +1385,16 @@
             
             let rawName = pax.name;
             const titles = ['Mr. ', 'Mrs. ', 'Ms. '];
+            let foundTitle = '';
             for(let t of titles) {
                 if(rawName.startsWith(t)) {
+                    foundTitle = t.trim();
                     rawName = rawName.substring(t.length);
                     break;
                 }
             }
+            
+            document.getElementById('edit-pax-title').value = foundTitle || getTitleFromSex(pax.sex);
             document.getElementById('edit-pax-name').value = rawName;
             
             document.getElementById('edit-pax-weight').value = pax.weight;
@@ -1381,8 +1439,7 @@
                     words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
                 }
             }
-            currentRawName = words.join(' ');
-            input.value = currentRawName;
+            input.value = words.join(' ');
         }
 
         function formatEditNameInput(input) {
@@ -1406,8 +1463,7 @@
         function handlePaxLogic() {
             const sex = document.getElementById('pax-sex').value;
             const weightInput = document.getElementById('pax-weight');
-            const titleDisplay = document.getElementById('pax-title-display');
-            const nameInput = document.getElementById('pax-name');
+            const titleInput = document.getElementById('pax-title');
             
             if (['Male', 'Female'].includes(sex)) {
                 weightInput.value = '70';
@@ -1419,17 +1475,13 @@
                 weightInput.value = '';
             }
 
-            currentTitle = getTitleFromSex(sex);
-            titleDisplay.innerText = currentTitle;
-            
-            if(currentTitle) {
-                nameInput.classList.replace('pl-12', currentTitle.length > 3 ? 'pl-16' : 'pl-12');
-            }
+            titleInput.value = getTitleFromSex(sex);
         }
 
         function handleEditPaxLogic() {
             const sex = document.getElementById('edit-pax-sex').value;
             const weightInput = document.getElementById('edit-pax-weight');
+            const titleInput = document.getElementById('edit-pax-title');
             
             if (['Male', 'Female'].includes(sex)) {
                 weightInput.value = '70';
@@ -1440,6 +1492,8 @@
             } else {
                 weightInput.value = '';
             }
+
+            titleInput.value = getTitleFromSex(sex);
         }
 
         function checkExpiry() {
@@ -1510,7 +1564,9 @@
         async function savePassenger(e) {
             e.preventDefault();
             
-            const fullName = `${currentTitle} ${currentRawName}`.trim();
+            const title = document.getElementById('pax-title').value;
+            const rawName = document.getElementById('pax-name').value.trim();
+            const fullName = `${title} ${rawName}`.trim();
             const sex = document.getElementById('pax-sex').value;
             const weight = document.getElementById('pax-weight').value;
             const passNo = document.getElementById('pax-pass-no').value;
@@ -1568,9 +1624,9 @@
             btn.disabled = true;
 
             const id = parseInt(document.getElementById('edit-pax-id').value);
-            let rawName = document.getElementById('edit-pax-name').value.trim();
+            const rawName = document.getElementById('edit-pax-name').value.trim();
+            const title = document.getElementById('edit-pax-title').value;
             const sex = document.getElementById('edit-pax-sex').value;
-            const title = getTitleFromSex(sex);
             const fullName = `${title} ${rawName}`.trim();
 
             const weight = document.getElementById('edit-pax-weight').value;
@@ -1666,14 +1722,29 @@
         // --- Passenger Database Table ---
         function updateGlobalPaxTable() {
             const tbody = document.getElementById('global-pax-table-body');
+            const searchInput = document.getElementById('search-global-pax');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             
-            if (globalPassengers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers in database. Add one to get started.</td></tr>`;
+            let filteredPassengers = globalPassengers;
+            
+            if (searchTerm) {
+                filteredPassengers = globalPassengers.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) || 
+                    (p.passNo && p.passNo.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (filteredPassengers.length === 0) {
+                if (globalPassengers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers in database. Add one to get started.</td></tr>`;
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers found matching "${searchTerm}".</td></tr>`;
+                }
                 return;
             }
 
             let htmlBuffer = [];
-            const displayData = globalPassengers.slice(-200).reverse(); 
+            const displayData = filteredPassengers.slice(-200).reverse(); 
 
             displayData.forEach((pax) => {
                 let expColor = 'text-slate-600';
@@ -1697,8 +1768,8 @@
                 `);
             });
 
-            if (globalPassengers.length > 200) {
-                htmlBuffer.push(`<tr><td colspan="4" class="px-4 py-4 text-center text-xs text-slate-400 italic">Showing latest 200 of ${globalPassengers.length} passengers.</td></tr>`);
+            if (filteredPassengers.length > 200) {
+                htmlBuffer.push(`<tr><td colspan="4" class="px-4 py-4 text-center text-xs text-slate-400 italic">Showing latest 200 of ${filteredPassengers.length} passengers.</td></tr>`);
             }
 
             tbody.innerHTML = htmlBuffer.join('');
@@ -1752,20 +1823,20 @@
             const tbody = document.getElementById('global-crew-table-body');
             
             if (globalCrews.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400 italic text-sm">No crew in database. Add one to get started.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="2" class="px-4 py-8 text-center text-slate-400 italic text-sm">No crew in database. Add one to get started.</td></tr>`;
                 return;
             }
 
             let htmlBuffer = [];
             globalCrews.forEach(crew => {
+                // Menambahkan titik otomatis untuk "Capt" agar terlihat seperti "Capt. Nama"
+                let displayRank = crew.rank === 'Capt' ? 'Capt.' : crew.rank;
+                
                 htmlBuffer.push(`
                     <tr onclick="openCrewModal(${crew.id})" class="cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group">
-                        <td class="px-4 py-3 md:py-4 font-medium text-brand-900 flex items-center justify-between">
-                            <span>${crew.name}</span>
-                            <i data-lucide="pencil" class="w-3.5 h-3.5 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                        </td>
-                        <td class="px-4 py-3 md:py-4 text-slate-600">
-                            <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md font-medium text-xs border border-slate-200">${crew.rank}</span>
+                        <td class="px-4 py-3 md:py-4 font-medium text-brand-900 flex items-center justify-between w-full">
+                            <span>${displayRank} ${crew.name}</span>
+                            <i data-lucide="pencil" class="w-3.5 h-3.5 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity mr-4"></i>
                         </td>
                         <td class="px-4 py-3 md:py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
@@ -1888,6 +1959,7 @@
                 }
                 
                 updateGlobalCrewTable();
+                updateCrewDatalists();
                 closeCrewModal();
             } catch (err) {
                 showToast("Error saving crew data.", "error");
@@ -1933,6 +2005,7 @@
             sendToGoogleSheets({ action: 'deleteCrew', id: crewToDelete });
             
             updateGlobalCrewTable();
+            updateCrewDatalists();
             closeConfirmCrewModal();
             showToast("Crew deleted successfully.", "success");
         }
