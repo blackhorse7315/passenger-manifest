@@ -13,6 +13,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML2PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <script>
         tailwind.config = {
@@ -109,23 +111,30 @@
                 <i data-lucide="users" class="w-5 h-5"></i>
                 <span class="font-medium text-sm md:text-base">Passenger Data</span>
             </button>
+            <button onclick="switchView('leadpax')" id="nav-leadpax" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 hover:bg-brand-800 transition-colors">
+                <i data-lucide="star" class="w-5 h-5"></i>
+                <span class="font-medium text-sm md:text-base">Lead Passenger</span>
+            </button>
             <button onclick="switchView('crew')" id="nav-crew" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 hover:bg-brand-800 transition-colors">
                 <i data-lucide="contact-2" class="w-5 h-5"></i>
                 <span class="font-medium text-sm md:text-base">Crew Data</span>
             </button>
         </nav>
 
-        <div class="p-5 md:p-6 border-t border-brand-800/50">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center text-brand-gold shrink-0">
-                    <i data-lucide="user" class="w-5 h-5"></i>
+        <div class="p-5 md:p-6 border-t border-brand-800/50 cursor-pointer hover:bg-brand-800 transition-colors group" onclick="switchView('docno')">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center text-brand-gold shrink-0">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">Administrator</p>
+                        <p class="text-xs text-brand-100/70 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> System Ready
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-sm font-medium">Administrator</p>
-                    <p class="text-xs text-brand-100/70 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> System Ready
-                    </p>
-                </div>
+                <i data-lucide="settings" class="w-4 h-4 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
             </div>
         </div>
     </aside>
@@ -174,6 +183,40 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         Connected to G-Sheets
                     </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Number Database View -->
+        <div id="view-docno" class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full hidden">
+            <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2 md:mb-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-900">Document Number Settings</h2>
+                    <p class="text-sm md:text-base text-slate-500 mt-1">Manage official manifest document numbers.</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="syncDataFromSheets(true)" class="bg-white border border-slate-200 text-slate-600 hover:text-brand-500 hover:bg-slate-50 px-3 py-2.5 rounded-lg font-medium shadow-sm transition-all flex items-center justify-center" title="Sync Data">
+                        <i data-lucide="refresh-cw" class="w-5 h-5 sync-icon"></i>
+                    </button>
+                    <button onclick="openDocNoModal()" class="flex-1 sm:flex-none bg-brand-900 hover:bg-brand-800 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-brand-800 text-sm md:text-base">
+                        <i data-lucide="plus" class="w-4 h-4 text-brand-gold"></i>
+                        Add Document No
+                    </button>
+                </div>
+            </header>
+            
+            <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200 w-full">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
+                        <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 md:py-4 border-b">Document Number</th>
+                                <th class="px-4 py-3 md:py-4 border-b text-right w-32">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="global-docno-table-body" class="divide-y divide-slate-100 bg-white">
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -267,6 +310,40 @@
             </div>
         </div>
 
+        <!-- Lead Passenger Database View -->
+        <div id="view-leadpax" class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full hidden">
+            <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2 md:mb-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-900">Lead Passenger Database</h2>
+                    <p class="text-sm md:text-base text-slate-500 mt-1">Manage master data of Lead Passengers.</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="syncDataFromSheets(true)" class="bg-white border border-slate-200 text-slate-600 hover:text-brand-500 hover:bg-slate-50 px-3 py-2.5 rounded-lg font-medium shadow-sm transition-all flex items-center justify-center" title="Sync Data">
+                        <i data-lucide="refresh-cw" class="w-5 h-5 sync-icon"></i>
+                    </button>
+                    <button onclick="openLeadPaxModal()" class="flex-1 sm:flex-none bg-brand-900 hover:bg-brand-800 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-brand-800 text-sm md:text-base">
+                        <i data-lucide="user-plus" class="w-4 h-4 text-brand-gold"></i>
+                        Add New Lead Pax
+                    </button>
+                </div>
+            </header>
+            
+            <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200 w-full">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
+                        <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 md:py-4 border-b">Lead Name</th>
+                                <th class="px-4 py-3 md:py-4 border-b text-right w-32">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="global-leadpax-table-body" class="divide-y divide-slate-100 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Crew Master Database View -->
         <div id="view-crew" class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full hidden">
             <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2 md:mb-4">
@@ -322,12 +399,12 @@
                             Flight Details
                         </h3>
                         <div class="bg-brand-800/50 px-2 md:px-3 py-1 rounded border border-brand-gold/30 flex items-center">
-                            <span class="text-brand-gold font-mono text-xs md:text-sm mr-1">FORM NO:</span>
-                            <input type="text" id="manifest-form-no" value="TWZ-090" class="bg-transparent border-none outline-none text-brand-gold font-mono text-xs md:text-sm w-20 md:w-28 uppercase placeholder-brand-gold/50" placeholder="TWZ-090">
+                            <span class="text-brand-gold font-mono text-xs md:text-sm mr-1">DOC NO:</span>
+                            <input type="text" id="manifest-form-no" list="dl-docnos" value="TWZ-090" class="bg-transparent border-none outline-none text-brand-gold font-mono text-xs md:text-sm w-24 md:w-32 uppercase placeholder-brand-gold/50" placeholder="TWZ-090">
+                            <datalist id="dl-docnos"></datalist>
                         </div>
                     </div>
                     
-                    <!-- Diubah menjadi lg:grid-cols-5 agar 5 kolom muat sejajar -->
                     <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 bg-white">
                         <div class="space-y-1 md:space-y-2">
                             <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</label>
@@ -352,24 +429,25 @@
                             <div class="flex-1 space-y-1 md:space-y-2">
                                 <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">From</label>
                                 <div class="flex gap-1">
-                                    <input type="text" id="route-from" required placeholder="e.g. HLP" list="airports-datalist" oninput="this.value = this.value.toUpperCase()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
-                                    <button type="button" onclick="openAirportModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Airport"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                    <input type="text" id="route-from" required placeholder="e.g. Halim Perdanakusuma" list="dest-datalist" oninput="formatTitleCase(this)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
+                                    <button type="button" onclick="openDestinationModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Destination"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                             <div class="flex-1 space-y-1 md:space-y-2">
                                 <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">To</label>
                                 <div class="flex gap-1">
-                                    <input type="text" id="route-to" required placeholder="e.g. DPS" list="airports-datalist" oninput="this.value = this.value.toUpperCase()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 uppercase text-sm">
-                                    <button type="button" onclick="openAirportModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Airport"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                    <input type="text" id="route-to" required placeholder="e.g. Semarang" list="dest-datalist" oninput="formatTitleCase(this)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
+                                    <button type="button" onclick="openDestinationModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Destination"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
-                            <!-- Datalist for Airports -->
+                            <!-- Datalist for Airports & Destinations -->
                             <datalist id="airports-datalist"></datalist>
+                            <datalist id="dest-datalist"></datalist>
                         </div>
-                        <!-- Kolom Lead Pax dipindah ke sini -->
                         <div class="space-y-1 md:space-y-2">
                             <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Lead Pax</label>
-                            <input type="text" id="crew-leadpax" placeholder="e.g. John Doe" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-sm">
+                            <input type="text" id="crew-leadpax" list="dl-leadpax" placeholder="e.g. John Doe" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-sm">
+                            <datalist id="dl-leadpax"></datalist>
                         </div>
                     </div>
                 </div>
@@ -381,7 +459,6 @@
                             <i data-lucide="users-2" class="w-4 h-4"></i> Crew Data
                         </h3>
                     </div>
-                    <!-- Kolom Lead pax sudah dihilangkan dari sini -->
                     <div class="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 bg-white">
                         <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">PIC</label><input type="text" id="crew-pic" list="dl-pilots" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">SIC 1</label><input type="text" id="crew-sic1" list="dl-pilots" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
@@ -421,14 +498,17 @@
                                     <th class="px-4 py-3 border-b">No.</th>
                                     <th class="px-4 py-3 border-b">Name</th>
                                     <th class="px-4 py-3 border-b">Sex</th>
-                                    <th class="px-4 py-3 border-b">Weight</th>
-                                    <th class="px-4 py-3 border-b">Passport Exp</th>
+                                    <th class="px-4 py-3 border-b">Pax Wt</th>
+                                    <th class="px-4 py-3 border-b">Bag Wt</th>
+                                    <th class="px-4 py-3 border-b">Total Wt</th>
+                                    <th class="px-4 py-3 border-b">Seat No</th>
+                                    <th class="px-4 py-3 border-b flex items-center gap-1">Dest <button type="button" onclick="openDestModal()" class="text-brand-600 hover:text-brand-800"><i data-lucide="plus-circle" class="w-4 h-4"></i></button></th>
                                     <th class="px-4 py-3 border-b text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="pax-table-body" class="divide-y divide-slate-100 bg-white">
                                 <tr>
-                                    <td colspan="6" class="px-4 py-8 text-center text-slate-400 italic">No passengers added yet.</td>
+                                    <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic">No passengers added yet.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -478,6 +558,241 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Destination -->
+    <div id="modal-dest" class="fixed inset-0 z-[60] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDestModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm m-4 modal-enter flex flex-col" id="modal-dest-content">
+            <div class="px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="text-lg md:text-xl font-serif font-bold text-brand-900 flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-5 h-5 text-brand-gold"></i> Add Destination
+                </h3>
+                <button onclick="closeDestModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <form id="add-dest-form" onsubmit="saveDestination(event)" class="space-y-5">
+                    <div class="space-y-1">
+                        <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Dest Code <span class="text-red-500">*</span></label>
+                        <input type="text" id="dest-code" required class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm uppercase" oninput="this.value = this.value.toUpperCase()" placeholder="e.g. SRG">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Location / Name</label>
+                        <input type="text" id="dest-name" class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" oninput="formatTitleCase(this)" placeholder="e.g. Semarang">
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeDestModal()" class="w-full sm:w-auto px-5 py-2.5 md:py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition-colors text-sm md:text-base">Cancel</button>
+                        <button type="submit" class="w-full sm:w-auto bg-brand-900 hover:bg-brand-800 text-white px-6 py-2.5 md:py-2 rounded-lg font-medium shadow transition-colors flex items-center justify-center gap-2 text-sm md:text-base">
+                            <i data-lucide="save" class="w-4 h-4 text-brand-gold"></i> Save Destination
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Lead Pax Form -->
+    <div id="modal-leadpax-detail" class="fixed inset-0 z-[55] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeLeadPaxModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm m-4 modal-enter flex flex-col" id="modal-leadpax-detail-content">
+            <div class="px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 id="modal-leadpax-title" class="text-lg md:text-xl font-serif font-bold text-brand-900 flex items-center gap-2">
+                    <i data-lucide="star" class="w-5 h-5 text-brand-gold"></i> Lead Pax Details
+                </h3>
+                <button onclick="closeLeadPaxModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <form id="edit-leadpax-form" onsubmit="saveLeadPax(event)" class="space-y-5">
+                    <input type="hidden" id="edit-leadpax-id">
+                    <div class="space-y-1">
+                        <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Lead Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit-leadpax-name" required class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm" placeholder="e.g. John Doe">
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeLeadPaxModal()" class="w-full sm:w-auto px-5 py-2.5 md:py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition-colors text-sm md:text-base">Cancel</button>
+                        <button type="submit" class="w-full sm:w-auto bg-brand-900 hover:bg-brand-800 text-white px-6 py-2.5 md:py-2 rounded-lg font-medium shadow transition-colors flex items-center justify-center gap-2 text-sm md:text-base">
+                            <i data-lucide="save" class="w-4 h-4 text-brand-gold"></i> Save Lead Pax
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Delete Lead Pax -->
+    <div id="modal-confirm-leadpax" class="fixed inset-0 z-[60] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeConfirmLeadPaxModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 m-4 modal-enter text-center flex flex-col items-center" id="modal-confirm-leadpax-content">
+            <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+                <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Delete Lead Pax?</h3>
+            <p class="text-sm text-slate-500 mb-6">This action cannot be undone. Are you sure you want to remove this lead passenger?</p>
+            <div class="flex gap-3 w-full">
+                <button onclick="closeConfirmLeadPaxModal()" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors">Cancel</button>
+                <button onclick="executeDeleteLeadPax()" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Document Number Form -->
+    <div id="modal-docno-detail" class="fixed inset-0 z-[55] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDocNoModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm m-4 modal-enter flex flex-col" id="modal-docno-detail-content">
+            <div class="px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 id="modal-docno-title" class="text-lg md:text-xl font-serif font-bold text-brand-900 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-5 h-5 text-brand-gold"></i> Document No Details
+                </h3>
+                <button onclick="closeDocNoModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <form id="edit-docno-form" onsubmit="saveDocNo(event)" class="space-y-5">
+                    <input type="hidden" id="edit-docno-id">
+                    <div class="space-y-1">
+                        <label class="text-[11px] md:text-xs font-semibold text-slate-700 uppercase tracking-wider">Document Number <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit-docno-name" required class="w-full px-4 py-2 md:py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400 text-sm uppercase" placeholder="e.g. TWZ-090">
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeDocNoModal()" class="w-full sm:w-auto px-5 py-2.5 md:py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition-colors text-sm md:text-base">Cancel</button>
+                        <button type="submit" class="w-full sm:w-auto bg-brand-900 hover:bg-brand-800 text-white px-6 py-2.5 md:py-2 rounded-lg font-medium shadow transition-colors flex items-center justify-center gap-2 text-sm md:text-base">
+                            <i data-lucide="save" class="w-4 h-4 text-brand-gold"></i> Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Delete Document Number -->
+    <div id="modal-confirm-docno" class="fixed inset-0 z-[60] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeConfirmDocNoModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 m-4 modal-enter text-center flex flex-col items-center" id="modal-confirm-docno-content">
+            <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+                <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Delete Document No?</h3>
+            <p class="text-sm text-slate-500 mb-6">This action cannot be undone. Are you sure you want to remove this document number?</p>
+            <div class="flex gap-3 w-full">
+                <button onclick="closeConfirmDocNoModal()" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors">Cancel</button>
+                <button onclick="executeDeleteDocNo()" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Manifest Details & Actions -->
+    <div id="modal-manifest-detail" class="fixed inset-0 z-[55] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeManifestDetailModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4 modal-enter flex flex-col" id="modal-manifest-detail-content">
+            <div class="sticky top-0 bg-white z-10 px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="text-lg md:text-xl font-serif font-bold text-brand-900 flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-brand-gold"></i> Manifest Details
+                </h3>
+                <div class="flex gap-2 items-center">
+                    <span class="bg-brand-50 text-brand-700 px-3 py-1 rounded-md text-xs font-mono font-medium border border-brand-200" id="detail-manifest-no">-</span>
+                    <button onclick="closeManifestDetailModal()" class="text-slate-400 hover:text-slate-700 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-4 md:p-6 space-y-6">
+                <!-- Flight Info -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div>
+                        <p class="text-[10px] md:text-xs text-slate-500 uppercase font-semibold mb-1">Flight Date</p>
+                        <p class="text-sm md:text-base font-medium text-brand-900" id="detail-flight-date">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] md:text-xs text-slate-500 uppercase font-semibold mb-1">A/C Type</p>
+                        <p class="text-sm md:text-base font-medium text-brand-900" id="detail-ac-type">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] md:text-xs text-slate-500 uppercase font-semibold mb-1">A/C Reg</p>
+                        <p class="text-sm md:text-base font-medium text-brand-900" id="detail-ac-reg">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] md:text-xs text-slate-500 uppercase font-semibold mb-1">Route</p>
+                        <p class="text-sm md:text-base font-bold text-brand-600 flex items-center uppercase" id="detail-route">-</p>
+                    </div>
+                </div>
+
+                <!-- Crew Info -->
+                <div>
+                    <h4 class="text-xs md:text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <i data-lucide="users-2" class="w-4 h-4 text-brand-400"></i> Crew Information
+                    </h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">PIC</p><p class="text-sm font-medium text-slate-800" id="detail-crew-pic">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">SIC 1</p><p class="text-sm font-medium text-slate-800" id="detail-crew-sic1">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">SIC 2</p><p class="text-sm font-medium text-slate-800" id="detail-crew-sic2">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Lead Pax</p><p class="text-sm font-medium text-slate-800" id="detail-crew-leadpax">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Engineer 1</p><p class="text-sm font-medium text-slate-800" id="detail-crew-eng1">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Engineer 2</p><p class="text-sm font-medium text-slate-800" id="detail-crew-eng2">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Flight Support</p><p class="text-sm font-medium text-slate-800" id="detail-crew-fs">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Cabin Service 1</p><p class="text-sm font-medium text-slate-800" id="detail-crew-cs1">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Cabin Service 2</p><p class="text-sm font-medium text-slate-800" id="detail-crew-cs2">-</p></div>
+                    </div>
+                </div>
+
+                <!-- Pax Info -->
+                <div>
+                    <div class="flex justify-between items-end border-b border-slate-100 pb-2 mb-3">
+                        <h4 class="text-xs md:text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-brand-400"></i> Passenger List
+                        </h4>
+                        <p class="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded">Total: <span id="detail-total-pax" class="font-bold text-brand-700">0</span></p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs md:text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50 text-slate-600 font-medium">
+                                    <tr>
+                                        <th class="px-4 py-2 border-b">No.</th>
+                                        <th class="px-4 py-2 border-b">Name</th>
+                                        <th class="px-4 py-2 border-b">Sex</th>
+                                        <th class="px-4 py-2 border-b">Pax Wt</th>
+                                        <th class="px-4 py-2 border-b">Bag Wt</th>
+                                        <th class="px-4 py-2 border-b">Total Wt</th>
+                                        <th class="px-4 py-2 border-b">Seat No</th>
+                                        <th class="px-4 py-2 border-b">Dest</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detail-pax-table-body" class="divide-y divide-slate-100 bg-white">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions Footer -->
+            <div class="px-4 md:px-6 py-4 border-t border-slate-100 flex flex-wrap justify-between items-center bg-slate-50 shrink-0 gap-3 rounded-b-2xl">
+                <div class="flex gap-1.5 md:gap-2">
+                    <button onclick="handleDetailAction('edit')" class="text-brand-600 hover:text-brand-800 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg hover:bg-brand-100 transition-colors flex items-center gap-1.5 text-xs md:text-sm font-medium border border-transparent hover:border-brand-200">
+                        <i data-lucide="edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Edit</span>
+                    </button>
+                    <button onclick="handleDetailAction('duplicate')" class="text-emerald-600 hover:text-emerald-800 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1.5 text-xs md:text-sm font-medium border border-transparent hover:border-emerald-200">
+                        <i data-lucide="copy" class="w-4 h-4"></i> <span class="hidden sm:inline">Duplicate</span>
+                    </button>
+                    <button onclick="handleDetailAction('delete')" class="text-red-600 hover:text-red-800 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-1.5 text-xs md:text-sm font-medium border border-transparent hover:border-red-200">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> <span class="hidden sm:inline">Delete</span>
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-detail-pdf" onclick="handleDetailAction('pdf')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-medium transition-colors text-xs md:text-sm flex items-center gap-2 shadow-sm">
+                        <i data-lucide="file-down" class="w-4 h-4"></i> <span class="hidden sm:inline">Download PDF</span><span class="sm:hidden">PDF</span>
+                    </button>
+                    <button onclick="closeManifestDetailModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-1.5 md:px-6 md:py-2 rounded-lg font-medium transition-colors text-xs md:text-sm">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -783,7 +1098,7 @@
     <script>
         // --- KONFIGURASI GOOGLE SHEETS ---
         // Ganti URL ini dengan URL Web App dari Google Apps Script Anda
-        const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWr8AifQBf935pahQMCNqPl7D3F5zOxRSvmxMPQqpFgMynL2wfNjJWDxnclstXfoBN/exec";
+        const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx12Cv4DiiZ0OWcK167OFnqKbO0ZDZb4E7E5Tkp2Q49yQ4iIjQBod86V-fynXnW5kP-/exec";
         
         // --- Helper: Send data to Google Sheets silently ---
         function sendToGoogleSheets(payload) {
@@ -797,7 +1112,46 @@
             }).catch(err => console.warn("Background sync error:", err));
         }
 
-        // --- Helper: Sync Data From Sheets ---
+        // --- Helper: Apply Data to UI ---
+        function applyDataToUI(result) {
+            if (result.passengers) {
+                globalPassengers = result.passengers;
+                updateGlobalPaxTable();
+                totalGlobalPax = globalPassengers.length;
+                document.getElementById('stat-total-pax').innerText = totalGlobalPax;
+            }
+            if (result.manifests) {
+                globalManifests = result.manifests;
+                updateManifestTable(); 
+                totalManifests = result.manifestCount || globalManifests.length;
+                document.getElementById('stat-total-manifests').innerText = totalManifests;
+            }
+            if (result.crews) {
+                globalCrews = result.crews;
+                updateGlobalCrewTable();
+                updateCrewDatalists();
+            }
+            if (result.airports) {
+                globalAirports = result.airports;
+                updateAirportDatalist();
+            }
+            if (result.destinations) {
+                globalDestinations = result.destinations;
+                updateDestDatalist();
+            }
+            if (result.leadpax) {
+                globalLeadPax = result.leadpax;
+                updateGlobalLeadPaxTable();
+                updateLeadPaxDatalist();
+            }
+            if (result.docnos) {
+                globalDocNos = result.docnos;
+                updateGlobalDocNoTable();
+                updateDocNoDatalist();
+            }
+        }
+
+        // --- Helper: Sync Data From Sheets (With Ultra-fast Caching) ---
         async function syncDataFromSheets(isManual = false) {
             if (!GOOGLE_SHEET_WEB_APP_URL || GOOGLE_SHEET_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) {
                 if (isManual) showToast("URL Google Sheets belum diatur.", "error");
@@ -807,6 +1161,18 @@
             const syncIcons = document.querySelectorAll('.sync-icon');
             syncIcons.forEach(icon => icon.classList.add('animate-spin'));
             
+            // 1. MUAT INSTAN DARI CACHE BROWSER (Agar UI langsung tampil)
+            if (!isManual) {
+                try {
+                    const cachedData = localStorage.getItem('twz_manifest_cache');
+                    if (cachedData) {
+                        const parsedCache = JSON.parse(cachedData);
+                        if (parsedCache.status === 'success') applyDataToUI(parsedCache);
+                    }
+                } catch (e) { console.warn("Cache reading error", e); }
+            }
+            
+            // 2. TARIK DATA TERBARU DARI GOOGLE SHEETS (Di latar belakang)
             try {
                 const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
                     method: 'GET',
@@ -818,27 +1184,11 @@
                 try {
                     const result = JSON.parse(text);
                     if (result.status === 'success') {
-                        if (result.passengers) {
-                            globalPassengers = result.passengers;
-                            updateGlobalPaxTable();
-                            totalGlobalPax = globalPassengers.length;
-                            document.getElementById('stat-total-pax').innerText = totalGlobalPax;
-                        }
-                        if (result.manifests) {
-                            globalManifests = result.manifests;
-                            updateManifestTable(); 
-                            totalManifests = result.manifestCount || globalManifests.length;
-                            document.getElementById('stat-total-manifests').innerText = totalManifests;
-                        }
-                        if (result.crews) {
-                            globalCrews = result.crews;
-                            updateGlobalCrewTable();
-                            updateCrewDatalists();
-                        }
-                        if (result.airports) {
-                            globalAirports = result.airports;
-                            updateAirportDatalist();
-                        }
+                        // Perbarui UI jika ada data baru
+                        applyDataToUI(result);
+                        // Simpan data terbaru ke Cache
+                        localStorage.setItem('twz_manifest_cache', text);
+                        
                         if (isManual) showToast("Data berhasil disinkronisasi!", "success");
                     }
                 } catch (parseError) {
@@ -865,6 +1215,9 @@
         let globalManifests = []; 
         let globalCrews = []; 
         let globalAirports = []; 
+        let globalDestinations = [];
+        let globalLeadPax = []; 
+        let globalDocNos = []; // State untuk Data Master Doc No
         let isAddingForManifest = false; 
         let totalGlobalPax = 0; 
         let totalManifests = 0; 
@@ -872,8 +1225,13 @@
         let currentTitle = ""; 
         
         let currentManifestId = null; 
+        let currentViewingManifestId = null; 
         let currentEditCrewId = null; 
         let crewToDelete = null; 
+        let currentEditLeadPaxId = null;
+        let leadPaxToDelete = null;
+        let currentEditDocNoId = null;
+        let docNoToDelete = null;
         let currentEditPaxId = null; 
         let manifestToDelete = null;
 
@@ -897,7 +1255,7 @@
         // --- UI Navigation ---
         function switchView(viewId) {
             // Hide all views first
-            const views = ['dashboard', 'form', 'passengers', 'manifests', 'crew'];
+            const views = ['dashboard', 'form', 'passengers', 'manifests', 'crew', 'leadpax', 'docno'];
             views.forEach(id => {
                 const el = document.getElementById(`view-${id}`);
                 if (el) el.classList.add('hidden');
@@ -978,11 +1336,11 @@
                 } catch(e){}
 
                 htmlBuffer.push(`
-                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm">
+                    <tr onclick="openManifestDetailModal('${manifest.manifestId}')" class="cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group">
                         <td class="px-4 py-3 md:py-4 font-medium text-brand-900">${dateStr}</td>
                         <td class="px-4 py-3 md:py-4 text-slate-600 font-medium">${manifest.acReg} <span class="text-[11px] md:text-xs font-normal text-slate-400 ml-1">(${manifest.acType})</span></td>
                         <td class="px-4 py-3 md:py-4 text-brand-600 font-semibold flex items-center gap-1.5">
-                            ${manifest.routeFrom} <i data-lucide="arrow-right" class="w-3 h-3 text-slate-400 mt-[2px]"></i> ${manifest.routeTo}
+                            ${(manifest.routeFrom || '')} <i data-lucide="arrow-right" class="w-3 h-3 text-slate-400 mt-[2px]"></i> ${(manifest.routeTo || '')}
                         </td>
                         <td class="px-4 py-3 md:py-4 text-slate-600">
                             <span class="px-2.5 py-1 bg-brand-50 border border-brand-100 text-brand-700 rounded-md font-medium text-xs whitespace-nowrap">
@@ -991,13 +1349,13 @@
                         </td>
                         <td class="px-4 py-3 md:py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
-                                <button type="button" onclick="editManifest('${manifest.manifestId}')" class="text-brand-500 hover:text-brand-700 p-1.5 md:p-2 rounded-lg hover:bg-brand-50 transition-colors" title="Edit Manifest">
+                                <button type="button" onclick="event.stopPropagation(); editManifest('${manifest.manifestId}')" class="text-brand-500 hover:text-brand-700 p-1.5 md:p-2 rounded-lg hover:bg-brand-50 transition-colors" title="Edit Manifest">
                                     <i data-lucide="edit" class="w-4 h-4"></i>
                                 </button>
-                                <button type="button" onclick="duplicateManifest('${manifest.manifestId}')" class="text-emerald-500 hover:text-emerald-700 p-1.5 md:p-2 rounded-lg hover:bg-emerald-50 transition-colors" title="Duplicate Manifest">
+                                <button type="button" onclick="event.stopPropagation(); duplicateManifest('${manifest.manifestId}')" class="text-emerald-500 hover:text-emerald-700 p-1.5 md:p-2 rounded-lg hover:bg-emerald-50 transition-colors" title="Duplicate Manifest">
                                     <i data-lucide="copy" class="w-4 h-4"></i>
                                 </button>
-                                <button type="button" onclick="requestDeleteManifest('${manifest.manifestId}')" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors" title="Delete Manifest">
+                                <button type="button" onclick="event.stopPropagation(); requestDeleteManifest('${manifest.manifestId}')" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors" title="Delete Manifest">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
@@ -1008,6 +1366,301 @@
 
             tbody.innerHTML = htmlBuffer.join('');
             lucide.createIcons({root: tbody});
+        }
+
+        function openManifestDetailModal(manifestId) {
+            currentViewingManifestId = manifestId;
+            const manifest = globalManifests.find(m => m.manifestId === manifestId);
+            if (!manifest) return;
+
+            document.getElementById('detail-manifest-no').innerText = manifest.formNo || '-';
+            let dateStr = manifest.date;
+            try {
+                const d = new Date(manifest.date);
+                if (!isNaN(d.getTime())) dateStr = d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
+            } catch(e){}
+            document.getElementById('detail-flight-date').innerText = dateStr;
+            document.getElementById('detail-ac-type').innerText = manifest.acType || '-';
+            document.getElementById('detail-ac-reg').innerText = manifest.acReg || '-';
+            
+            const routeFrom = (manifest.routeFrom || '');
+            const routeTo = (manifest.routeTo || '');
+            document.getElementById('detail-route').innerHTML = `${routeFrom} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline mx-1.5 text-slate-400"></i> ${routeTo}`;
+
+            const crew = manifest.crew || {};
+            document.getElementById('detail-crew-pic').innerText = crew.pic || '-';
+            document.getElementById('detail-crew-sic1').innerText = crew.sic1 || '-';
+            document.getElementById('detail-crew-sic2').innerText = crew.sic2 || '--';
+            document.getElementById('detail-crew-leadpax').innerText = crew.leadPax || '-';
+            document.getElementById('detail-crew-eng1').innerText = crew.eng1 || '-';
+            document.getElementById('detail-crew-eng2').innerText = crew.eng2 || '--';
+            document.getElementById('detail-crew-fs').innerText = crew.fs || '--';
+            document.getElementById('detail-crew-cs1').innerText = crew.cs1 || '--';
+            document.getElementById('detail-crew-cs2').innerText = crew.cs2 || '--';
+
+            const paxList = manifest.passengers || [];
+            document.getElementById('detail-total-pax').innerText = paxList.length;
+            const tbody = document.getElementById('detail-pax-table-body');
+            
+            if (paxList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400 italic text-sm">No passengers registered on this flight.</td></tr>`;
+            } else {
+                let htmlBuffer = [];
+                paxList.forEach((pax, index) => {
+                    const bagWt = pax.bagWt || 0;
+                    const totalWt = Number(pax.weight) + Number(bagWt);
+                    htmlBuffer.push(`
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-2.5">${index + 1}</td>
+                            <td class="px-4 py-2.5 font-medium text-brand-900">${pax.name}</td>
+                            <td class="px-4 py-2.5 text-slate-600">${pax.sex}</td>
+                            <td class="px-4 py-2.5 text-slate-600">${pax.weight} kg</td>
+                            <td class="px-4 py-2.5 text-slate-600">${bagWt} kg</td>
+                            <td class="px-4 py-2.5 font-semibold text-brand-700">${totalWt} kg</td>
+                            <td class="px-4 py-2.5 text-slate-600 uppercase">${pax.seat || '-'}</td>
+                            <td class="px-4 py-2.5 text-slate-600 uppercase">${pax.dest || '-'}</td>
+                        </tr>
+                    `);
+                });
+                tbody.innerHTML = htmlBuffer.join('');
+            }
+
+            const modal = document.getElementById('modal-manifest-detail');
+            const content = document.getElementById('modal-manifest-detail-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+                lucide.createIcons({root: content});
+            }, 10);
+        }
+
+        function closeManifestDetailModal() {
+            const modal = document.getElementById('modal-manifest-detail');
+            const content = document.getElementById('modal-manifest-detail-content');
+            
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+                currentViewingManifestId = null;
+            }, 200);
+        }
+
+        function handleDetailAction(action) {
+            if(!currentViewingManifestId) return;
+            const mId = currentViewingManifestId;
+            
+            if(action === 'pdf') {
+                downloadManifestPDF();
+                return;
+            }
+
+            closeManifestDetailModal();
+            setTimeout(() => {
+                if(action === 'edit') editManifest(mId);
+                else if(action === 'duplicate') duplicateManifest(mId);
+                else if(action === 'delete') requestDeleteManifest(mId);
+            }, 250);
+        }
+
+        // --- Fitur Download PDF ---
+        async function downloadManifestPDF() {
+            if (!currentViewingManifestId) return;
+            const manifest = globalManifests.find(m => m.manifestId === currentViewingManifestId);
+            if (!manifest) return;
+
+            const btn = document.getElementById('btn-detail-pdf');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span class="hidden sm:inline">Generating...</span>`;
+            lucide.createIcons({root: btn});
+            btn.disabled = true;
+
+            // --- OPTIMASI KILAT: Mengubah logo menjadi Base64 agar PDF tidak terhambat loading ---
+            let logoSrc = "https://lh3.googleusercontent.com/d/1WNcGjsZ9_Fp54xzOl01EYRqM6-wY5Zh7";
+            try {
+                logoSrc = await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                    img.onerror = reject;
+                    img.src = logoSrc;
+                    setTimeout(reject, 3000); // Batas waktu maksimal 3 detik agar aplikasi tidak stuck
+                });
+            } catch (e) {
+                console.warn("Preload logo gagal, lanjut menggunakan URL asli.");
+            }
+            // -----------------------------------------------------------------------------
+            
+            let dateStr = manifest.date;
+            try {
+                const d = new Date(manifest.date);
+                if (!isNaN(d.getTime())) dateStr = d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
+            } catch(e){}
+
+            const crew = manifest.crew || {};
+            const paxList = manifest.passengers || [];
+
+            let paxRows = '';
+            let grandTotalWeight = 0;
+            if(paxList.length === 0){
+                paxRows = `<tr><td colspan="6" style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-style: italic;">No passengers registered</td></tr>`;
+            } else {
+                paxList.forEach((p, idx) => {
+                    const paxWt = parseFloat(p.weight) || 0;
+                    const bagWt = parseFloat(p.bagWt) || 0;
+                    const totalWt = paxWt + bagWt;
+                    grandTotalWeight += totalWt;
+
+                    paxRows += `
+                        <tr>
+                            <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">${idx + 1}</td>
+                            <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${p.name}</td>
+                            <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">${p.seat || p.seatNo || '-'}</td>
+                            <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">${p.sex}</td>
+                            <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">${paxWt} / ${bagWt}</td>
+                            <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${totalWt} kg</td>
+                        </tr>
+                    `;
+                });
+                
+                paxRows += `
+                    <tr style="background: #f8fafc;">
+                        <td colspan="5" style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #102a43;">Total Weights:</td>
+                        <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #102a43;">${grandTotalWeight} kg</td>
+                    </tr>
+                `;
+            }
+
+            // Struktur HTML murni untuk dikirim ke generator PDF
+            const htmlContent = `
+                <div style="background-color: white; color: #000; font-family: Arial, sans-serif; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #102a43; padding-bottom: 15px; margin-bottom: 25px;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img src="${logoSrc}" style="height: 60px;" alt="Logo">
+                            <div>
+                                <h1 style="margin: 0; font-size: 26px; color: #102a43; font-weight: 800; letter-spacing: 0.5px;">TRANSWISATA</h1>
+                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #334e68; letter-spacing: 2px; font-weight: 600;">PASSENGER FLIGHT MANIFEST</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0 0 5px 0; font-size: 16px; font-weight: bold; color: #102a43;">Doc No: ${manifest.formNo || '-'}</p>
+                            <p style="margin: 0; font-size: 14px; color: #334e68;">Date: ${dateStr}</p>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; margin-bottom: 25px; border-collapse: collapse; font-size: 13px;">
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; width: 20%; color: #334e68;">A/C Type</td>
+                            <td style="padding: 10px; border: 1px solid #cbd5e1; width: 30%; font-weight: bold;">${manifest.acType || '-'}</td>
+                            <td style="padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; width: 20%; color: #334e68;">A/C Reg</td>
+                            <td style="padding: 10px; border: 1px solid #cbd5e1; width: 30%; font-weight: bold;">${manifest.acReg || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">Route</td>
+                            <td colspan="3" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; text-transform: uppercase;">
+                                ${(manifest.routeFrom || '')} <span style="margin: 0 10px;">&rarr;</span> ${(manifest.routeTo || '')}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <h3 style="font-size: 15px; margin: 0 0 10px 0; color: #102a43; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">CREW INFORMATION</h3>
+                    <table style="width: 100%; margin-bottom: 25px; border-collapse: collapse; font-size: 13px;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68; width: 16%;">PIC</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; width: 17%;">${crew.pic || '-'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68; width: 16%;">SIC 1</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; width: 17%;">${crew.sic1 || '-'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68; width: 16%;">SIC 2</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; width: 17%;">${crew.sic2 || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">Lead Pax</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${crew.leadPax || '-'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">Eng 1</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${crew.eng1 || '-'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">Eng 2</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${crew.eng2 || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">Flight Spt</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${crew.fs || '-'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">CS 1</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${crew.cs1 || '-'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #334e68;">CS 2</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${crew.cs2 || '-'}</td>
+                        </tr>
+                    </table>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px;">
+                        <h3 style="font-size: 15px; margin: 0; color: #102a43;">PASSENGER LIST</h3>
+                        <span style="font-size: 13px; font-weight: bold; color: #334e68;">Total: ${paxList.length} Pax</span>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 40px;">
+                        <thead>
+                            <tr style="background: #102a43; color: white;">
+                                <th style="padding: 10px; border: 1px solid #102a43; text-align: center; width: 6%;">No</th>
+                                <th style="padding: 10px; border: 1px solid #102a43; text-align: left;">Full Name</th>
+                                <th style="padding: 10px; border: 1px solid #102a43; text-align: center; width: 10%;">Seat</th>
+                                <th style="padding: 10px; border: 1px solid #102a43; text-align: center; width: 10%;">Sex</th>
+                                <th style="padding: 10px; border: 1px solid #102a43; text-align: center; width: 16%;">Pax / Bag</th>
+                                <th style="padding: 10px; border: 1px solid #102a43; text-align: center; width: 14%;">Total Wt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${paxRows}
+                        </tbody>
+                    </table>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px; padding: 0 40px; page-break-inside: avoid;">
+                        <div style="text-align: center; width: 220px;">
+                            <p style="margin: 0 0 70px 0; font-size: 13px; color: #334e68;">Prepared By,</p>
+                            <div style="border-bottom: 1px solid #102a43;"></div>
+                            <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold; color: #102a43;">Dispatcher / Handling</p>
+                        </div>
+                        <div style="text-align: center; width: 220px;">
+                            <p style="margin: 0 0 70px 0; font-size: 13px; color: #334e68;">Acknowledged By,</p>
+                            <div style="border-bottom: 1px solid #102a43;"></div>
+                            <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold; color: #102a43;">Pilot in Command</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const rawDate = dateStr.replace(/\//g, '');
+                const rawReg = (manifest.acReg || '').replace('-', '');
+                const opt = {
+                    margin:       0.4,
+                    filename:     `Manifest_${rawReg}_${rawDate}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true, logging: false },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                
+                await html2pdf().set(opt).from(htmlContent).save();
+                showToast("PDF successfully downloaded!", "success");
+            } catch(err) {
+                console.error("PDF generation failed:", err);
+                showToast("Failed to generate PDF.", "error");
+            } finally {
+                btn.innerHTML = originalText;
+                lucide.createIcons({root: btn});
+                btn.disabled = false;
+            }
         }
 
         function editManifest(manifestId) {
@@ -1256,6 +1909,398 @@
             }
         }
 
+        // --- Destination Logic ---
+        function updateDestDatalist() {
+            const dl = document.getElementById('dest-datalist');
+            if(!dl) return;
+            let options = '';
+            globalDestinations.forEach(a => {
+                options += `<option value="${a.code}">${a.name}</option>`;
+            });
+            dl.innerHTML = options;
+        }
+
+        function openDestModal() {
+            document.getElementById('add-dest-form').reset();
+            const modal = document.getElementById('modal-dest');
+            const content = document.getElementById('modal-dest-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        function closeDestModal() {
+            const modal = document.getElementById('modal-dest');
+            const content = document.getElementById('modal-dest-content');
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+            }, 200);
+        }
+
+        async function saveDestination(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            const code = document.getElementById('dest-code').value.toUpperCase();
+            const name = document.getElementById('dest-name').value;
+
+            try {
+                const dest = { code, name };
+                globalDestinations.push(dest);
+                updateDestDatalist();
+                sendToGoogleSheets({ action: 'saveDestination', data: dest });
+                showToast("Destination saved successfully!", "success");
+                closeDestModal();
+            } catch(e) {
+                showToast("Error saving destination", "error");
+            } finally {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+                lucide.createIcons({root:btn});
+            }
+        } 
+
+        // --- Lead Passenger Logic ---
+        function updateLeadPaxDatalist() {
+            const dl = document.getElementById('dl-leadpax');
+            if(!dl) return;
+            let options = '';
+            globalLeadPax.forEach(l => {
+                options += `<option value="${l.name}"></option>`;
+            });
+            dl.innerHTML = options;
+        }
+
+        function updateGlobalLeadPaxTable() {
+            const tbody = document.getElementById('global-leadpax-table-body');
+            
+            if (globalLeadPax.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="px-4 py-8 text-center text-slate-400 italic text-sm">No Lead Passengers in database. Add one to get started.</td></tr>`;
+                return;
+            }
+
+            let htmlBuffer = [];
+            globalLeadPax.forEach(lead => {
+                htmlBuffer.push(`
+                    <tr onclick="openLeadPaxModal(${lead.id})" class="cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group">
+                        <td class="px-4 py-3 md:py-4 font-medium text-brand-900 flex items-center justify-between w-full">
+                            <span>${lead.name}</span>
+                            <i data-lucide="pencil" class="w-3.5 h-3.5 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity mr-4"></i>
+                        </td>
+                        <td class="px-4 py-3 md:py-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button type="button" onclick="event.stopPropagation(); requestDeleteLeadPax(${lead.id})" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors" title="Delete Lead Pax">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            tbody.innerHTML = htmlBuffer.join('');
+            lucide.createIcons({root: tbody});
+        }
+
+        function openLeadPaxModal(id = null) {
+            currentEditLeadPaxId = id;
+            const modal = document.getElementById('modal-leadpax-detail');
+            const content = document.getElementById('modal-leadpax-detail-content');
+            const title = document.getElementById('modal-leadpax-title');
+            
+            document.getElementById('edit-leadpax-form').reset();
+            
+            if (id) {
+                const lead = globalLeadPax.find(l => l.id === id);
+                if (lead) {
+                    document.getElementById('edit-leadpax-id').value = lead.id;
+                    document.getElementById('edit-leadpax-name').value = lead.name;
+                    title.innerHTML = `<i data-lucide="star" class="w-5 h-5 text-brand-gold"></i> Edit Lead Pax Details`;
+                }
+            } else {
+                document.getElementById('edit-leadpax-id').value = '';
+                title.innerHTML = `<i data-lucide="star" class="w-5 h-5 text-brand-gold"></i> Add New Lead Pax`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+                lucide.createIcons({root: title});
+            }, 10);
+        }
+
+        function closeLeadPaxModal() {
+            const modal = document.getElementById('modal-leadpax-detail');
+            const content = document.getElementById('modal-leadpax-detail-content');
+            
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+                currentEditLeadPaxId = null;
+            }, 200);
+        }
+
+        async function saveLeadPax(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            const idField = document.getElementById('edit-leadpax-id').value;
+            const leadData = {
+                id: idField ? parseInt(idField) : Date.now(),
+                name: document.getElementById('edit-leadpax-name').value.trim()
+            };
+
+            try {
+                if (currentEditLeadPaxId) {
+                    const index = globalLeadPax.findIndex(l => l.id === currentEditLeadPaxId);
+                    if (index !== -1) globalLeadPax[index] = leadData;
+                    sendToGoogleSheets({ action: 'updateLeadPax', data: leadData });
+                    showToast("Lead Pax updated successfully!", "success");
+                } else {
+                    globalLeadPax.push(leadData);
+                    sendToGoogleSheets({ action: 'saveLeadPax', data: leadData });
+                    showToast("New Lead Pax added successfully!", "success");
+                }
+                
+                updateGlobalLeadPaxTable();
+                updateLeadPaxDatalist();
+                closeLeadPaxModal();
+            } catch (err) {
+                showToast("Error saving Lead Pax data.", "error");
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                lucide.createIcons({root: btn});
+            }
+        }
+
+        function requestDeleteLeadPax(id) {
+            leadPaxToDelete = id;
+            const modal = document.getElementById('modal-confirm-leadpax');
+            const content = document.getElementById('modal-confirm-leadpax-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        function closeConfirmLeadPaxModal() {
+            const modal = document.getElementById('modal-confirm-leadpax');
+            const content = document.getElementById('modal-confirm-leadpax-content');
+            
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+                leadPaxToDelete = null;
+            }, 200);
+        }
+
+        function executeDeleteLeadPax() {
+            if (!leadPaxToDelete) return;
+            globalLeadPax = globalLeadPax.filter(l => l.id !== leadPaxToDelete);
+            sendToGoogleSheets({ action: 'deleteLeadPax', id: leadPaxToDelete });
+            
+            updateGlobalLeadPaxTable();
+            updateLeadPaxDatalist();
+            closeConfirmLeadPaxModal();
+            showToast("Lead Pax deleted successfully.", "success");
+        }
+
+        // --- Master Doc No Logic ---
+        function updateDocNoDatalist() {
+            const dl = document.getElementById('dl-docnos');
+            if(!dl) return;
+            let options = '';
+            globalDocNos.forEach(doc => {
+                options += `<option value="${doc.docNo}"></option>`;
+            });
+            dl.innerHTML = options;
+        }
+
+        function updateGlobalDocNoTable() {
+            const tbody = document.getElementById('global-docno-table-body');
+            
+            if (globalDocNos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="px-4 py-8 text-center text-slate-400 italic text-sm">No Document Numbers in database. Add one to get started.</td></tr>`;
+                return;
+            }
+
+            let htmlBuffer = [];
+            globalDocNos.forEach(doc => {
+                htmlBuffer.push(`
+                    <tr onclick="openDocNoModal(${doc.id})" class="cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group">
+                        <td class="px-4 py-3 md:py-4 font-medium text-brand-900 flex items-center justify-between w-full">
+                            <span>${doc.docNo}</span>
+                            <i data-lucide="pencil" class="w-3.5 h-3.5 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity mr-4"></i>
+                        </td>
+                        <td class="px-4 py-3 md:py-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button type="button" onclick="event.stopPropagation(); requestDeleteDocNo(${doc.id})" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors" title="Delete Document No">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            tbody.innerHTML = htmlBuffer.join('');
+            lucide.createIcons({root: tbody});
+        }
+
+        function openDocNoModal(id = null) {
+            currentEditDocNoId = id;
+            const modal = document.getElementById('modal-docno-detail');
+            const content = document.getElementById('modal-docno-detail-content');
+            const title = document.getElementById('modal-docno-title');
+            
+            document.getElementById('edit-docno-form').reset();
+            
+            if (id) {
+                const doc = globalDocNos.find(d => d.id === id);
+                if (doc) {
+                    document.getElementById('edit-docno-id').value = doc.id;
+                    document.getElementById('edit-docno-name').value = doc.docNo;
+                    title.innerHTML = `<i data-lucide="settings" class="w-5 h-5 text-brand-gold"></i> Edit Doc No Details`;
+                }
+            } else {
+                document.getElementById('edit-docno-id').value = '';
+                title.innerHTML = `<i data-lucide="settings" class="w-5 h-5 text-brand-gold"></i> Add Document No`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+                lucide.createIcons({root: title});
+            }, 10);
+        }
+
+        function closeDocNoModal() {
+            const modal = document.getElementById('modal-docno-detail');
+            const content = document.getElementById('modal-docno-detail-content');
+            
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+                currentEditDocNoId = null;
+            }, 200);
+        }
+
+        async function saveDocNo(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            const idField = document.getElementById('edit-docno-id').value;
+            const docData = {
+                id: idField ? parseInt(idField) : Date.now(),
+                docNo: document.getElementById('edit-docno-name').value.trim()
+            };
+
+            try {
+                if (currentEditDocNoId) {
+                    const index = globalDocNos.findIndex(d => d.id === currentEditDocNoId);
+                    if (index !== -1) globalDocNos[index] = docData;
+                    sendToGoogleSheets({ action: 'updateDocNo', data: docData });
+                    showToast("Document Number updated successfully!", "success");
+                } else {
+                    globalDocNos.push(docData);
+                    sendToGoogleSheets({ action: 'saveDocNo', data: docData });
+                    showToast("New Document Number added successfully!", "success");
+                }
+                
+                updateGlobalDocNoTable();
+                updateDocNoDatalist();
+                closeDocNoModal();
+            } catch (err) {
+                showToast("Error saving Document Number.", "error");
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                lucide.createIcons({root: btn});
+            }
+        }
+
+        function requestDeleteDocNo(id) {
+            docNoToDelete = id;
+            const modal = document.getElementById('modal-confirm-docno');
+            const content = document.getElementById('modal-confirm-docno-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        function closeConfirmDocNoModal() {
+            const modal = document.getElementById('modal-confirm-docno');
+            const content = document.getElementById('modal-confirm-docno-content');
+            
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-leave-active');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                content.classList.remove('modal-leave-active');
+                content.classList.add('modal-enter');
+                docNoToDelete = null;
+            }, 200);
+        }
+
+        function executeDeleteDocNo() {
+            if (!docNoToDelete) return;
+            globalDocNos = globalDocNos.filter(d => d.id !== docNoToDelete);
+            sendToGoogleSheets({ action: 'deleteDocNo', id: docNoToDelete });
+            
+            updateGlobalDocNoTable();
+            updateDocNoDatalist();
+            closeConfirmDocNoModal();
+            showToast("Document Number deleted successfully.", "success");
+        }
+
         // --- Modal Control: Select Existing Passenger ---
         function openSelectPaxModal() {
             document.getElementById('search-pax').value = '';
@@ -1335,7 +2380,13 @@
         function addExistingPaxToManifest(paxId) {
             const pax = globalPassengers.find(p => p.id === paxId);
             if (pax && !currentPassengers.some(cp => cp.id === paxId)) {
-                currentPassengers.push(pax);
+                // Gunakan deep clone agar nilai tidak ter-modify di global state
+                const paxCopy = JSON.parse(JSON.stringify(pax));
+                paxCopy.bagWt = 0;
+                paxCopy.seat = '';
+                paxCopy.dest = '';
+                
+                currentPassengers.push(paxCopy);
                 updatePaxTable();
                 showToast(`${pax.name} added to manifest!`, 'success');
                 renderSelectPaxList(); 
@@ -1443,6 +2494,17 @@
         }
 
         function formatEditNameInput(input) {
+            let val = input.value;
+            let words = val.split(' ');
+            for(let i=0; i<words.length; i++) {
+                if(words[i].length > 0) {
+                    words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+                }
+            }
+            input.value = words.join(' ');
+        }
+
+        function formatTitleCase(input) {
             let val = input.value;
             let words = val.split(' ');
             for(let i=0; i<words.length; i++) {
@@ -1593,8 +2655,12 @@
                 totalGlobalPax = globalPassengers.length;
                 document.getElementById('stat-total-pax').innerText = totalGlobalPax;
 
-                if (isAddingForManifest) {
-                    currentPassengers.push(pax);
+                 if (isAddingForManifest) {
+                    const paxCopy = JSON.parse(JSON.stringify(pax));
+                    paxCopy.bagWt = 0;
+                    paxCopy.seat = '';
+                    paxCopy.dest = '';
+                    currentPassengers.push(paxCopy);
                     updatePaxTable();
                 }
 
@@ -1784,27 +2850,31 @@
             countSpan.innerText = currentPassengers.length;
 
             if (currentPassengers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers added yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers added yet.</td></tr>`;
                 return;
             }
 
             let htmlBuffer = [];
             currentPassengers.forEach((pax, index) => {
-                let expColor = 'text-slate-600';
-                if(pax.passExp !== '-') {
-                    const diffDays = (new Date(pax.passExp) - new Date()) / (1000 * 60 * 60 * 24);
-                    if(diffDays < 0) expColor = 'text-red-500 font-semibold';
-                    else if(diffDays < 180) expColor = 'text-amber-500 font-semibold';
-                    else expColor = 'text-emerald-500 font-semibold';
-                }
-
+                const bagWt = pax.bagWt || 0;
+                const totalWt = Number(pax.weight) + Number(bagWt);
+                
                 htmlBuffer.push(`
                     <tr class="hover:bg-slate-50 transition-colors text-xs md:text-sm">
                         <td class="px-4 py-3">${index + 1}</td>
                         <td class="px-4 py-3 font-medium text-brand-900">${pax.name}</td>
                         <td class="px-4 py-3 text-slate-600">${pax.sex}</td>
                         <td class="px-4 py-3 text-slate-600">${pax.weight} kg</td>
-                        <td class="px-4 py-3 ${expColor}">${pax.passExp}</td>
+                        <td class="px-4 py-3">
+                            <input type="number" min="0" value="${bagWt}" oninput="updateInlinePaxData(${pax.id}, 'bagWt', this.value)" class="w-16 px-2 py-1.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                        </td>
+                        <td class="px-4 py-3 font-bold text-brand-700" id="total-wt-${pax.id}">${totalWt} kg</td>
+                        <td class="px-4 py-3">
+                            <input type="text" value="${pax.seat || ''}" oninput="this.value = this.value.toUpperCase(); updateInlinePaxData(${pax.id}, 'seat', this.value)" class="w-16 px-2 py-1.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white uppercase">
+                        </td>
+                        <td class="px-4 py-3">
+                            <input type="text" list="dest-datalist" value="${pax.dest || ''}" oninput="this.value = this.value.toUpperCase(); updateInlinePaxData(${pax.id}, 'dest', this.value)" class="w-20 px-2 py-1.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white uppercase" placeholder="DEST">
+                        </td>
                         <td class="px-4 py-3 text-right">
                             <button type="button" onclick="removePax(${pax.id})" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -1816,6 +2886,19 @@
             
             tbody.innerHTML = htmlBuffer.join('');
             lucide.createIcons({root: tbody});
+        }
+            
+            // Helper update data baris secara realtime
+        function updateInlinePaxData(id, field, value) {
+            const pax = currentPassengers.find(p => p.id === id);
+            if(pax) {
+                pax[field] = value;
+                if(field === 'bagWt') {
+                    const totalEl = document.getElementById(`total-wt-${id}`);
+                    const newTotal = Number(pax.weight) + Number(value || 0);
+                    if(totalEl) totalEl.innerText = `${newTotal} kg`;
+                }
+            }
         }
 
         // --- Logic: Crew Management ---
@@ -1829,7 +2912,6 @@
 
             let htmlBuffer = [];
             globalCrews.forEach(crew => {
-                // Menambahkan titik otomatis untuk "Capt" agar terlihat seperti "Capt. Nama"
                 let displayRank = crew.rank === 'Capt' ? 'Capt.' : crew.rank;
                 
                 htmlBuffer.push(`
