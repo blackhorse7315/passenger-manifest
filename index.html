@@ -1504,6 +1504,39 @@
 
             // Gunakan logo yang sudah di-preload di memori (Tanpa harus antri koneksi internet)
             const logoSrc = cachedLogoBase64;
+
+            // --- PRELOAD TANDA TANGAN PIC ---
+            let picSignBase64 = '';
+            if (manifest.crew && manifest.crew.pic) {
+                const picData = globalCrews.find(c => c.name === manifest.crew.pic);
+                if (picData && picData.signUrl) {
+                    let signUrl = picData.signUrl;
+                    const match = signUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                    if (match && match[1]) {
+                        signUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                    }
+                    try {
+                        picSignBase64 = await new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.crossOrigin = 'Anonymous';
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                resolve(canvas.toDataURL('image/png'));
+                            };
+                            img.onerror = reject;
+                            img.src = signUrl;
+                            setTimeout(reject, 3000); 
+                        });
+                    } catch (e) {
+                        console.warn("Preload PIC signature gagal, dilanjutkan tanpa gambar.");
+                    }
+                }
+            }
+            // ---------------------------------
             
             let dateStr = manifest.date;
             try {
@@ -1603,25 +1636,25 @@
                         <h3 style="font-size: 10px; margin: 0 0 6px 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Crew Information</h3>
                         <table style="width: 100%; border-collapse: collapse; font-size: 11px; border: 1px solid #e2e8f0;">
                             <tr>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 17%; font-size: 10px;">PIC</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; width: 16%; font-weight: 700; color: #0f172a;">${crew.pic || '-'}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 18%; font-size: 10px;">Second in Command</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; width: 15%; font-weight: 700; color: #0f172a;">${crew.sic1 || '-'}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 18%; font-size: 10px;">Second in Command</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; width: 16%; font-weight: 700; color: #0f172a;">${crew.sic2 || '-'}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 15%; font-size: 10px;">PIC</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; width: 18%; font-weight: 700; color: #0f172a;">${crew.pic || '-'}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 15%; font-size: 10px;">SIC 1</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; width: 18%; font-weight: 700; color: #0f172a;">${crew.sic1 || '-'}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 15%; font-size: 10px;">SIC 2</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; width: 19%; font-weight: 700; color: #0f172a;">${crew.sic2 || '-'}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Engineer 1</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Eng 1</td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.eng1 || '-'}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Engineer 2</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Eng 2</td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.eng2 || '-'}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Flight Support</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Flight Spt</td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.fs || '-'}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Cabin Service 1</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">CS 1</td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.cs1 || '-'}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">Cabin Service 2</td>
+                                <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;">CS 2</td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.cs2 || '-'}</td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; font-size: 10px;"></td>
                                 <td style="padding: 5px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;"></td>
@@ -1656,15 +1689,18 @@
 
                     <!-- SIGNATURES -->
                     <div style="display: flex; justify-content: space-between; padding: 0 20px; page-break-inside: avoid;">
-                        <div style="text-align: center; width: 180px;">
-                            <p style="margin: 0 0 50px 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Prepared By,</p>
+                        <div style="text-align: center; width: 220px;">
+                            <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Acknowledged By,</p>
+                            <!-- Tanda tangan diperbesar: max-height menjadi 65px -->
+                            <div style="height: 70px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
+                                ${picSignBase64 ? `<img src="${picSignBase64}" style="max-height: 65px; max-width: 180px; object-fit: contain;" alt="PIC Sign">` : ''}
+                            </div>
+                            <!-- Nama PIC -->
+                            <p style="margin: 0 0 2px 0; font-size: 12px; font-weight: 800; color: #0f172a;">${manifest.crew.pic || '&nbsp;'}</p>
+                            <!-- Garis Tanda Tangan -->
                             <div style="border-bottom: 1.5px solid #0f172a;"></div>
-                            <p style="margin: 8px 0 0 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Dispatcher / Handling</p>
-                        </div>
-                        <div style="text-align: center; width: 180px;">
-                            <p style="margin: 0 0 50px 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Acknowledged By,</p>
-                            <div style="border-bottom: 1.5px solid #0f172a;"></div>
-                            <p style="margin: 8px 0 0 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Pilot in Command</p>
+                            <!-- Teks Pilot in Command dibuat lebih rapat dengan margin-top yang kecil (2px) -->
+                            <p style="margin: 2px 0 0 0; font-size: 11px; font-weight: 800; color: #0f172a;">Pilot in Command</p>
                         </div>
                     </div>
                 </div>
