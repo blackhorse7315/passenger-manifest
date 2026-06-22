@@ -803,12 +803,16 @@
                 return;
             }
 
-            listContainer.innerHTML = '';
-            filtered.forEach(pax => {
+            // OPTIMASI: Kumpulkan HTML di array (buffer) & Batasi maksimal 50 tampilan
+            const maxDisplay = 50;
+            const displayData = filtered.slice(0, maxDisplay);
+            let htmlBuffer = [];
+
+            displayData.forEach(pax => {
                 // Cek apakah sudah masuk manifest ini
                 const isAdded = currentPassengers.some(cp => cp.id === pax.id);
                 
-                listContainer.innerHTML += `
+                htmlBuffer.push(`
                     <div class="flex items-center justify-between p-3 hover:bg-slate-100 border-b border-slate-100 last:border-0 rounded-lg transition-colors mb-1">
                         <div>
                             <p class="font-bold text-brand-900 text-sm">${pax.name}</p>
@@ -818,8 +822,15 @@
                             ${isAdded ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline md:mr-1"></i> <span class="hidden md:inline">Added</span>' : 'Select'}
                         </button>
                     </div>
-                `;
+                `);
             });
+
+            if (filtered.length > maxDisplay) {
+                htmlBuffer.push(`<div class="p-4 text-center text-xs text-slate-400 italic">Showing ${maxDisplay} of ${filtered.length} passengers. Please use search to find specific passengers.</div>`);
+            }
+
+            // Eksekusi render 1 KALI saja agar tidak terjadi lag
+            listContainer.innerHTML = htmlBuffer.join('');
             lucide.createIcons({root: listContainer});
         }
 
@@ -1026,8 +1037,13 @@
                 return;
             }
 
-            tbody.innerHTML = '';
-            globalPassengers.forEach((pax) => {
+            // OPTIMASI: Kumpulkan HTML di array (buffer) agar tidak terjadi lag
+            let htmlBuffer = [];
+
+            // Jika data lebih dari 100, batasi tampilannya di tabel agar web tetap ringan
+            const displayData = globalPassengers.slice(-200).reverse(); // Ambil 200 data terakhir & dibalik agar yang terbaru di atas
+
+            displayData.forEach((pax) => {
                 let expColor = 'text-slate-600';
                 if(pax.passExp !== '-') {
                     const diffDays = (new Date(pax.passExp) - new Date()) / (1000 * 60 * 60 * 24);
@@ -1036,7 +1052,7 @@
                     else expColor = 'text-emerald-500 font-semibold';
                 }
 
-                tbody.innerHTML += `
+                htmlBuffer.push(`
                     <tr onclick="openPaxDetailModal(${pax.id})" class="cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group">
                         <td class="px-4 py-3 md:py-4 font-medium text-brand-900 flex items-center justify-between">
                             <span>${pax.name}</span>
@@ -1046,8 +1062,14 @@
                         <td class="px-4 py-3 md:py-4 text-slate-600">${pax.weight} kg</td>
                         <td class="px-4 py-3 md:py-4 ${expColor}">${pax.passExp}</td>
                     </tr>
-                `;
+                `);
             });
+
+            if (globalPassengers.length > 200) {
+                htmlBuffer.push(`<tr><td colspan="4" class="px-4 py-4 text-center text-xs text-slate-400 italic">Showing latest 200 of ${globalPassengers.length} passengers.</td></tr>`);
+            }
+
+            tbody.innerHTML = htmlBuffer.join('');
             lucide.createIcons({root: tbody});
         }
 
@@ -1270,7 +1292,7 @@
                 return;
             }
 
-            tbody.innerHTML = '';
+            let htmlBuffer = [];
             currentPassengers.forEach((pax, index) => {
                 let expColor = 'text-slate-600';
                 if(pax.passExp !== '-') {
@@ -1280,7 +1302,7 @@
                     else expColor = 'text-emerald-500 font-semibold';
                 }
 
-                tbody.innerHTML += `
+                htmlBuffer.push(`
                     <tr class="hover:bg-slate-50 transition-colors text-xs md:text-sm">
                         <td class="px-4 py-3">${index + 1}</td>
                         <td class="px-4 py-3 font-medium text-brand-900">${pax.name}</td>
@@ -1293,8 +1315,10 @@
                             </button>
                         </td>
                     </tr>
-                `;
+                `);
             });
+            
+            tbody.innerHTML = htmlBuffer.join('');
             lucide.createIcons({root: tbody});
         }
 
