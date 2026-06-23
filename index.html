@@ -470,12 +470,14 @@
                         
                         <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 1</label><input type="text" id="crew-cs1" list="dl-cs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 2</label><input type="text" id="crew-cs2" list="dl-cs" value="--" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
+                        <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">PREPARED BY</label><input type="text" id="crew-preparedby" list="dl-preparedby" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500" placeholder="e.g. John Doe"></div>
                         
                         <!-- Datalists for Crew Auto-suggestions -->
                         <datalist id="dl-pilots"></datalist>
                         <datalist id="dl-engs"></datalist>
                         <datalist id="dl-cs"></datalist>
                         <datalist id="dl-fs"></datalist>
+                        <datalist id="dl-preparedby"></datalist>
                     </div>
                 </div>
 
@@ -739,6 +741,7 @@
                         <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Flight Support</p><p class="text-sm font-medium text-slate-800" id="detail-crew-fs">-</p></div>
                         <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Cabin Service 1</p><p class="text-sm font-medium text-slate-800" id="detail-crew-cs1">-</p></div>
                         <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Cabin Service 2</p><p class="text-sm font-medium text-slate-800" id="detail-crew-cs2">-</p></div>
+                        <div><p class="text-[10px] md:text-xs text-slate-400 uppercase">Prepared By</p><p class="text-sm font-medium text-slate-800" id="detail-crew-preparedby">-</p></div>
                     </div>
                 </div>
 
@@ -1413,6 +1416,7 @@
             document.getElementById('detail-crew-fs').innerText = crew.fs || '--';
             document.getElementById('detail-crew-cs1').innerText = crew.cs1 || '--';
             document.getElementById('detail-crew-cs2').innerText = crew.cs2 || '--';
+            document.getElementById('detail-crew-preparedby').innerText = crew.preparedBy || '-';
 
             const paxList = manifest.passengers || [];
             document.getElementById('detail-total-pax').innerText = paxList.length;
@@ -1505,37 +1509,38 @@
             // Gunakan logo yang sudah di-preload di memori (Tanpa harus antri koneksi internet)
             const logoSrc = cachedLogoBase64;
 
-            // --- PRELOAD TANDA TANGAN PIC ---
-            let picSignBase64 = '';
-            if (manifest.crew && manifest.crew.pic) {
-                const picData = globalCrews.find(c => c.name === manifest.crew.pic);
-                if (picData && picData.signUrl) {
-                    let signUrl = picData.signUrl;
-                    const match = signUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-                    if (match && match[1]) {
-                        signUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
-                    }
-                    try {
-                        picSignBase64 = await new Promise((resolve, reject) => {
-                            const img = new Image();
-                            img.crossOrigin = 'Anonymous';
-                            img.onload = () => {
-                                const canvas = document.createElement('canvas');
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, 0, 0);
-                                resolve(canvas.toDataURL('image/png'));
-                            };
-                            img.onerror = reject;
-                            img.src = signUrl;
-                            setTimeout(reject, 3000); 
-                        });
-                    } catch (e) {
-                        console.warn("Preload PIC signature gagal, dilanjutkan tanpa gambar.");
-                    }
-                }
-            }
+            // --- PRELOAD TANDA TANGAN (PIC & Prepared By) ---
+            const loadSign = async (crewName) => {
+                if (!crewName) return '';
+                const c = globalCrews.find(x => x.name === crewName);
+                if (!c || !c.signUrl) return '';
+                let url = c.signUrl;
+                const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) url = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                try {
+                    return await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'Anonymous';
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            resolve(canvas.toDataURL('image/png'));
+                        };
+                        img.onerror = reject;
+                        img.src = url;
+                        setTimeout(reject, 3000);
+                    });
+                } catch(e) { return ''; }
+            };
+
+            // Muat kedua gambar secara paralel agar tetap cepat
+            const [picSignBase64, prepSignBase64] = await Promise.all([
+                loadSign(manifest.crew?.pic),
+                loadSign(manifest.crew?.preparedBy)
+            ]);
             // ---------------------------------
             
             let dateStr = manifest.date;
@@ -1690,6 +1695,16 @@
                     <!-- SIGNATURES -->
                     <div style="display: flex; justify-content: space-between; padding: 0 20px; page-break-inside: avoid;">
                         <div style="text-align: center; width: 220px;">
+                            <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Prepared By,</p>
+                            <!-- Tanda tangan Prepared By -->
+                            <div style="height: 70px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
+                                ${prepSignBase64 ? `<img src="${prepSignBase64}" style="max-height: 65px; max-width: 180px; object-fit: contain;" alt="Prepared By Sign">` : ''}
+                            </div>
+                            <p style="margin: 0 0 2px 0; font-size: 12px; font-weight: 800; color: #0f172a;">${manifest.crew.preparedBy || '&nbsp;'}</p>
+                            <div style="border-bottom: 1.5px solid #0f172a;"></div>
+                            <p style="margin: 2px 0 0 0; font-size: 11px; font-weight: 800; color: #0f172a;">Dispatcher / Handling</p>
+                        </div>
+                        <div style="text-align: center; width: 220px;">
                             <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Acknowledged By,</p>
                             <!-- Tanda tangan diperbesar: max-height menjadi 65px -->
                             <div style="height: 70px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
@@ -1752,6 +1767,7 @@
                 document.getElementById('crew-fs').value = manifest.crew.fs || '--';
                 document.getElementById('crew-cs1').value = manifest.crew.cs1 || '--';
                 document.getElementById('crew-cs2').value = manifest.crew.cs2 || '--';
+                document.getElementById('crew-preparedby').value = manifest.crew.preparedBy || '';
             }
 
             currentPassengers = JSON.parse(JSON.stringify(manifest.passengers || []));
@@ -1784,6 +1800,7 @@
                 document.getElementById('crew-fs').value = manifest.crew.fs || '--';
                 document.getElementById('crew-cs1').value = manifest.crew.cs1 || '--';
                 document.getElementById('crew-cs2').value = manifest.crew.cs2 || '--';
+                document.getElementById('crew-preparedby').value = manifest.crew.preparedBy || '';
             }
 
             currentPassengers = JSON.parse(JSON.stringify(manifest.passengers || []));
@@ -1844,6 +1861,7 @@
             const dlEngs = document.getElementById('dl-engs');
             const dlCs = document.getElementById('dl-cs');
             const dlFs = document.getElementById('dl-fs');
+            const dlPreparedBy = document.getElementById('dl-preparedby');
             
             if (!dlPilots || !dlEngs || !dlCs || !dlFs) return;
 
@@ -1851,6 +1869,7 @@
             let engsOptions = '';
             let csOptions = '';
             let fsOptions = '';
+            let preparedByOptions = '';
 
             globalCrews.forEach(c => {
                 if (c.rank === 'Capt' || c.rank === 'FO') {
@@ -1862,12 +1881,17 @@
                 } else if (c.rank === 'HLO' || c.rank === 'FOO') {
                     fsOptions += `<option value="${c.name}">${c.rank}</option>`;
                 }
+                
+                if (['HLO', 'FOO'].includes(c.rank)) {
+                    preparedByOptions += `<option value="${c.name}">${c.rank}</option>`;
+                }
             });
 
             dlPilots.innerHTML = pilotsOptions;
             dlEngs.innerHTML = engsOptions;
             dlCs.innerHTML = csOptions;
             dlFs.innerHTML = fsOptions;
+            if(dlPreparedBy) dlPreparedBy.innerHTML = preparedByOptions;
         }
 
         // --- Notification System ---
@@ -3189,7 +3213,8 @@
                     eng2: document.getElementById('crew-eng2').value,
                     fs: document.getElementById('crew-fs').value,
                     cs1: document.getElementById('crew-cs1').value,
-                    cs2: document.getElementById('crew-cs2').value
+                    cs2: document.getElementById('crew-cs2').value,
+                    preparedBy: document.getElementById('crew-preparedby').value
                 },
                 passengers: currentPassengers,
                 passengerIds: currentPassengers.map(p => p.id)
