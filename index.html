@@ -1500,17 +1500,14 @@
             const btn = document.getElementById('btn-detail-pdf');
             const originalText = btn.innerHTML;
             
-            // Gunakan SVG murni standar Tailwind agar animasi lebih ringan dan diprioritaskan oleh GPU browser
             btn.innerHTML = `<svg class="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span class="hidden sm:inline">Generating...</span>`;
             btn.disabled = true;
 
-            // Beri perintah pada browser untuk mulai merender animasi (paint) sebelum mengeksekusi proses berat PDF
             await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 150)));
 
-            // Gunakan logo yang sudah di-preload di memori (Tanpa harus antri koneksi internet)
             const logoSrc = cachedLogoBase64;
 
-            // --- PRELOAD TANDA TANGAN (PIC & Prepared By) ---
+            // --- PRELOAD TANDA TANGAN ---
             const loadSign = async (crewName) => {
                 if (!crewName) return '';
                 const c = globalCrews.find(x => x.name === crewName);
@@ -1537,36 +1534,32 @@
                 } catch(e) { return ''; }
             };
 
-            // Muat kedua gambar secara paralel agar tetap cepat
             const [picSignBase64, prepSignBase64] = await Promise.all([
                 loadSign(manifest.crew?.pic),
                 loadSign(manifest.crew?.preparedBy)
             ]);
-            // ---------------------------------
             
             let dateStr = manifest.date;
             try {
                 const d = new Date(manifest.date);
-                // Format tanggal modern: 12 Oct 2023
                 if (!isNaN(d.getTime())) dateStr = d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
             } catch(e){}
 
             const crew = manifest.crew || {};
             const paxList = manifest.passengers || [];
 
-            // Helper format Title Case untuk kolom Destination
             const toTitleCase = (str) => {
                 if(!str) return '-';
                 return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             };
 
+            // --- RESTRUKTURISASI BARIS TABEL ---
             let paxRows = '';
             let grandTotalWeight = 0;
             const maxRows = Math.max(18, paxList.length);
 
             for (let i = 0; i < maxRows; i++) {
-                // Zebra striping style
-                const bg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+                const rowClass = i % 2 === 0 ? 'bg-white' : 'bg-light';
                 
                 if (i < paxList.length) {
                     const p = paxList[i];
@@ -1574,188 +1567,169 @@
                     const bagWt = parseFloat(p.bagWt) || 0;
                     const totalWt = paxWt + bagWt;
                     grandTotalWeight += totalWt;
-                    
                     const destFormatted = toTitleCase(p.dest || p.destination);
 
                     paxRows += `
-                        <tr style="background-color: ${bg};">
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 10px;">${i + 1}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; font-size: 10px;">${p.name}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; font-weight: 600; color: #334155; font-size: 10px; text-transform: uppercase;">${p.seat || p.seatNo || '-'}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #475569; font-size: 10px;">${p.sex}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #475569; font-size: 10px;">${paxWt} | ${bagWt}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; font-weight: 800; color: #0f172a; font-size: 10px;">${totalWt} kg</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; text-align: center; font-weight: 600; color: #334155; font-size: 10px;">${destFormatted}</td>
+                        <tr class="${rowClass}">
+                            <td class="text-center text-muted">${i + 1}</td>
+                            <td class="font-bold">${p.name}</td>
+                            <td class="text-center font-bold uppercase">${p.seat || p.seatNo || '-'}</td>
+                            <td class="text-center text-muted">${p.sex}</td>
+                            <td class="text-center text-muted">${paxWt} | ${bagWt}</td>
+                            <td class="text-center font-extrabold">${totalWt} kg</td>
+                            <td class="text-center font-bold">${destFormatted}</td>
                         </tr>
                     `;
                 } else {
-                    // Logic untuk baris kosong
-                    let emptyText = '';
-                    if (i === 0 && paxList.length === 0) {
-                        emptyText = '-No Passenger-';
-                    }
-                    
+                    let emptyText = (i === 0 && paxList.length === 0) ? '-No Passenger-' : '';
                     paxRows += `
-                        <tr style="background-color: ${bg};">
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 10px;">${i + 1}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; font-weight: 700; color: #94a3b8; font-size: 10px; font-style: italic; text-align: center;">${emptyText || '&nbsp;'}</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
-                            <td style="padding: 3px 4px; border-bottom: 1px solid #e2e8f0;">&nbsp;</td>
+                        <tr class="${rowClass}">
+                            <td class="text-center text-muted">${i + 1}</td>
+                            <td class="text-center text-muted" style="font-style: italic;">${emptyText || '&nbsp;'}</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
                         </tr>
                     `;
                 }
             }
 
             paxRows += `
-                <tr style="background-color: #f1f5f9;">
-                    <td colspan="5" style="padding: 4px 6px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: right; font-weight: 800; color: #0f172a; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Total Payload Weight:</td>
-                    <td style="padding: 4px 6px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; border-right: 1px solid #e2e8f0; text-align: center; font-weight: 800; color: #0f172a; font-size: 10px;">${grandTotalWeight} kg</td>
-                    <td style="border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;"></td>
+                <tr class="bg-total">
+                    <td colspan="5" class="text-right font-extrabold uppercase" style="letter-spacing: 0.5px;">Total Payload Weight:</td>
+                    <td class="text-center font-extrabold">${grandTotalWeight} kg</td>
+                    <td></td>
                 </tr>
             `;
 
-            // --- STRUKTUR DESAIN PDF MODERN & ELEGAN ---
-            // Mengambil Document Number dari Master Data (Item paling akhir/terbaru ditambahkan)
+            // --- STRUKTUR HTML BERSIH & RAPI ---
             const masterDocNo = globalDocNos && globalDocNos.length > 0 ? globalDocNos[globalDocNos.length - 1].docNo : 'F/TWA-OPS/008-02';
 
             const htmlContent = `
-                <div style="background-color: white; color: #334155; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 10px 20px;">
-                    
-                    <!-- HEADER -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="${logoSrc}" style="height: 40px;" alt="Logo">
-                            <div>
-                                <h1 style="margin: 0; font-size: 16px; color: #0f172a; font-weight: 800; letter-spacing: 1px;">TRANSWISATA</h1>
-                                <p style="margin: 2px 0 0 0; font-size: 8px; color: #64748b; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase;">Passenger Flight Manifest</p>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <p style="margin: 0 0 3px 0; font-size: 8px; font-weight: 700; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; font-size: 8px; margin-right: 4px;">DOC NO:</span>${masterDocNo}</p>
-                            <p style="margin: 0; font-size: 8px; font-weight: 700; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; font-size: 8px; margin-right: 4px;">DATE:</span>${dateStr}</p>
+                <div class="header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="${logoSrc}" style="height: 40px;" alt="Logo">
+                        <div>
+                            <h1 class="header-title">TRANSWISATA</h1>
+                            <p class="header-subtitle">Passenger Flight Manifest</p>
                         </div>
                     </div>
+                    <div class="header-info text-right">
+                        <p><span>DOC NO:</span>${masterDocNo}</p>
+                        <p style="margin-bottom:0;"><span>DATE:</span>${dateStr}</p>
+                    </div>
+                </div>
 
-                    <!-- FLIGHT INFO -->
-                    <div style="margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
-                            <h3 style="font-size: 10px; margin: 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Flight Details</h3>
-                            <span style="font-size: 10px; font-weight: 800; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; margin-right: 4px;">FORM NO:</span>${manifest.formNo || '-'}</span>
-                        </div>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 10px; border-radius: 4px; overflow: hidden; border: 1px solid #e2e8f0;">
-                            <tr>
-                                <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; width: 15%; color: #64748b; text-transform: uppercase;">A/C Type</td>
-                                <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; width: 35%; font-weight: 800; color: #0f172a;">${manifest.acType || '-'}</td>
-                                <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; width: 15%; color: #64748b; text-transform: uppercase;">A/C Reg</td>
-                                <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; width: 35%; font-weight: 800; color: #0f172a;">${manifest.acReg || '-'}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 4px 6px; background: #f8fafc; border-right: 1px solid #e2e8f0; font-weight: 600; color: #64748b; text-transform: uppercase;">Route</td>
-                                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; font-weight: 800; color: #0f172a; text-transform: uppercase;">
-                                    ${(manifest.routeFrom || '')} <span style="margin: 0 6px; color: #cbd5e1; font-size: 10px;">&rarr;</span> ${(manifest.routeTo || '')}
-                                </td>
-                                <td style="padding: 4px 6px; background: #f8fafc; border-right: 1px solid #e2e8f0; font-weight: 600; color: #64748b; text-transform: uppercase;">Lead Pax</td>
-                                <td style="padding: 4px 6px; font-weight: 800; color: #0f172a;">${crew.leadPax || '-'}</td>
-                            </tr>
-                        </table>
-                    </div>
+                <!-- FLIGHT INFO -->
+                <div class="section-header">
+                    <h3 class="section-title">Flight Details</h3>
+                    <div class="section-title"><span style="color:#64748b; margin-right:4px;">FORM NO:</span><span style="color:#0f172a;">${manifest.formNo || '-'}</span></div>
+                </div>
+                <div class="box-wrapper">
+                    <table>
+                        <tr>
+                            <td class="label-cell">A/C Type</td>
+                            <td class="val-cell" style="width: 35%;">${manifest.acType || '-'}</td>
+                            <td class="label-cell">A/C Reg</td>
+                            <td class="val-cell" style="width: 35%;">${manifest.acReg || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Route</td>
+                            <td class="val-cell uppercase">${(manifest.routeFrom || '')} <span style="margin: 0 6px; color: #94a3b8;">&rarr;</span> ${(manifest.routeTo || '')}</td>
+                            <td class="label-cell">Lead Pax</td>
+                            <td class="val-cell">${crew.leadPax || '-'}</td>
+                        </tr>
+                    </table>
+                </div>
 
-                    <!-- CREW INFO -->
-                    <div style="margin-bottom: 10px;">
-                        <h3 style="font-size: 10px; margin: 0 0 4px 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Crew Information</h3>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #e2e8f0;">
-                            <tr>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 15%;">PIC</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; width: 18%; font-weight: 700; color: #0f172a;">${crew.pic || '-'}</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 15%;">SIC 1</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; width: 18%; font-weight: 700; color: #0f172a;">${crew.sic1 || '-'}</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; width: 15%;">SIC 2</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; width: 19%; font-weight: 700; color: #0f172a;">${crew.sic2 || '-'}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569;">Eng 1</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.eng1 || '-'}</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569;">Eng 2</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.eng2 || '-'}</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569;">Flight Support</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.fs || '-'}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569;">CS 1</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.cs1 || '-'}</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569;">CS 2</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${crew.cs2 || '-'}</td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569;"></td>
-                                <td style="padding: 3px 6px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;"></td>
-                            </tr>
-                        </table>
-                    </div>
+                <!-- CREW INFO -->
+                <h3 class="section-title" style="margin-bottom: 4px;">Crew Information</h3>
+                <div class="box-wrapper">
+                    <table>
+                        <tr>
+                            <td class="label-cell" style="width: 15%;">PIC</td>
+                            <td class="val-cell" style="width: 18%;">${crew.pic || '-'}</td>
+                            <td class="label-cell" style="width: 15%;">SIC 1</td>
+                            <td class="val-cell" style="width: 18%;">${crew.sic1 || '-'}</td>
+                            <td class="label-cell" style="width: 15%;">SIC 2</td>
+                            <td class="val-cell" style="width: 19%;">${crew.sic2 || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Eng 1</td>
+                            <td class="val-cell">${crew.eng1 || '-'}</td>
+                            <td class="label-cell">Eng 2</td>
+                            <td class="val-cell">${crew.eng2 || '-'}</td>
+                            <td class="label-cell">Flight Support</td>
+                            <td class="val-cell">${crew.fs || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">CS 1</td>
+                            <td class="val-cell">${crew.cs1 || '-'}</td>
+                            <td class="label-cell">CS 2</td>
+                            <td class="val-cell">${crew.cs2 || '-'}</td>
+                            <td class="label-cell"></td>
+                            <td class="val-cell"></td>
+                        </tr>
+                    </table>
+                </div>
 
-                    <!-- PASSENGER LIST -->
-                    <div style="margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
-                            <h3 style="font-size: 10px; margin: 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Passenger List</h3>
-                            <span style="font-size: 10px; font-weight: 800; color: #0f172a; background: #f1f5f9; padding: 2px 6px; border-radius: 3px; border: 1px solid #e2e8f0;">TOTAL: ${paxList.length} PAX</span>
-                        </div>
-                        
-                        <table style="width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #0f172a;">
-                            <thead>
-                                <tr style="background: #0f172a; color: white;">
-                                    <th style="padding: 4px; border: 1px solid #0f172a; text-align: center; width: 5%; font-weight: 600; font-size: 10px; letter-spacing: 0.5px;">No</th>
-                                    <th style="padding: 4px; border: 1px solid #0f172a; text-align: left; font-weight: 600; font-size: 10px; letter-spacing: 0.5px;">Full Name</th>
-                                    <th style="padding: 4px; border: 1px solid #0f172a; text-align: center; width: 10%; font-weight: 600; font-size: 10px; letter-spacing: 0.5px;">Seat</th>
-                                    <th style="padding: 4px; border: 1px solid #0f172a; text-align: center; width: 10%; font-weight: 600; font-size: 10px; letter-spacing: 0.5px;">Sex</th>
-                                    <th style="padding: 2px 4px; border: 1px solid #0f172a; text-align: center; width: 14%; font-weight: 600; font-size: 10px; letter-spacing: 0.5px; line-height: 1.2;">WEIGHT<br><span style="font-size: 8px; color: #cbd5e1; font-weight: normal;">PAX | BAG</span></th>
-                                    <th style="padding: 2px 4px; border: 1px solid #0f172a; text-align: center; width: 12%; font-weight: 600; font-size: 10px; letter-spacing: 0.5px; line-height: 1.2;">Total<br>Weight</th>
-                                    <th style="padding: 4px; border: 1px solid #0f172a; text-align: center; width: 15%; font-weight: 600; font-size: 10px; letter-spacing: 0.5px;">Dest</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${paxRows}
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- PASSENGER LIST -->
+                <div class="section-header">
+                    <h3 class="section-title">Passenger List</h3>
+                    <span class="section-badge">TOTAL: ${paxList.length} PAX</span>
+                </div>
+                <div class="box-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No</th>
+                                <th class="text-left">Full Name</th>
+                                <th style="width: 10%;">Seat</th>
+                                <th style="width: 10%;">Sex</th>
+                                <th style="width: 14%;">WEIGHT<br><span class="th-sub">PAX | BAG</span></th>
+                                <th style="width: 12%;">Total<br>Weight</th>
+                                <th style="width: 15%;">Dest</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${paxRows}
+                        </tbody>
+                    </table>
+                </div>
 
-                    <!-- SIGNATURES -->
-                    <div style="display: flex; justify-content: space-between; padding: 0 10px; page-break-inside: avoid;">
-                        <div style="text-align: center; width: 220px;">
-                            <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Prepared By,</p>
-                            <!-- Tanda tangan Prepared By diperbesar lagi -->
-                            <div style="height: 75px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
-                                ${prepSignBase64 ? `<img src="${prepSignBase64}" style="max-height: 70px; max-width: 200px; object-fit: contain;" alt="Prepared By Sign">` : ''}
-                            </div>
-                            <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: 800; color: #0f172a;">${manifest.crew.preparedBy || '&nbsp;'}</p>
-                            <div style="border-bottom: 1.5px solid #0f172a;"></div>
-                            <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: 800; color: #0f172a;">Dispatcher / Handling</p>
+                <!-- SIGNATURES -->
+                <div class="signatures">
+                    <div class="sign-box">
+                        <p class="sign-label">Prepared By,</p>
+                        <div class="sign-img-container">
+                            ${prepSignBase64 ? `<img src="${prepSignBase64}" class="sign-img" alt="Prepared By Sign">` : ''}
                         </div>
-                        <div style="text-align: center; width: 220px;">
-                            <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Acknowledged By,</p>
-                            <!-- Tanda tangan PIC diperbesar lagi -->
-                            <div style="height: 75px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
-                                ${picSignBase64 ? `<img src="${picSignBase64}" style="max-height: 70px; max-width: 200px; object-fit: contain;" alt="PIC Sign">` : ''}
-                            </div>
-                            <!-- Nama PIC -->
-                            <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: 800; color: #0f172a;">${manifest.crew.pic || '&nbsp;'}</p>
-                            <!-- Garis Tanda Tangan -->
-                            <div style="border-bottom: 1.5px solid #0f172a;"></div>
-                            <!-- Teks Pilot in Command -->
-                            <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: 800; color: #0f172a;">Pilot in Command</p>
-                        </div>
+                        <p class="sign-name">${manifest.crew.preparedBy || '&nbsp;'}</p>
+                        <div class="sign-line"></div>
+                        <p class="sign-title">Dispatcher / Handling</p>
                     </div>
+                    <div class="sign-box">
+                        <p class="sign-label">Acknowledged By,</p>
+                        <div class="sign-img-container">
+                            ${picSignBase64 ? `<img src="${picSignBase64}" class="sign-img" alt="PIC Sign">` : ''}
+                        </div>
+                        <p class="sign-name">${manifest.crew.pic || '&nbsp;'}</p>
+                        <div class="sign-line"></div>
+                        <p class="sign-title">Pilot in Command</p>
+                    </div>
+                </div>
 
-                    <!-- COPY TO -->
-                    <div style="margin-top: 10px; padding: 0 10px; font-size: 10px; font-weight: 600; color: #475569; page-break-inside: avoid;">
-                        <p style="margin: 0 0 2px 0; color: #0f172a; font-weight: 800;">Copy to:</p>
-                        <table style="border: none; margin: 0; padding: 0; font-size: 10px; color: #475569; width: auto;">
-                            <tr><td style="padding: 0 5px 1px 0; vertical-align: top; font-weight: 700;">1.</td><td style="padding: 0 0 1px 0;">President Director</td></tr>
-                            <tr><td style="padding: 0 5px 1px 0; vertical-align: top; font-weight: 700;">2.</td><td style="padding: 0 0 1px 0;">Operation Department</td></tr>
-                            <tr><td style="padding: 0 5px 1px 0; vertical-align: top; font-weight: 700;">3.</td><td style="padding: 0 0 1px 0;">Finance Department</td></tr>
-                            <tr><td style="padding: 0 5px 0 0; vertical-align: top; font-weight: 700;">4.</td><td style="padding: 0;">Flops</td></tr>
-                        </table>
-                    </div>
+                <!-- COPY TO -->
+                <div class="copy-to">
+                    <p>Copy to:</p>
+                    <table>
+                        <tr><td style="width: 20px; font-weight: 700;">1.</td><td>President Director</td></tr>
+                        <tr><td style="font-weight: 700;">2.</td><td>Operation Department</td></tr>
+                        <tr><td style="font-weight: 700;">3.</td><td>Finance Department</td></tr>
+                        <tr><td style="font-weight: 700;">4.</td><td>Flops</td></tr>
+                    </table>
                 </div>
             `;
 
@@ -1764,7 +1738,6 @@
                 const rawReg = (manifest.acReg || '').replace('-', '');
                 const docTitle = `Manifest_${rawReg}_${rawDate}`;
 
-                // --- METODE BARU: NATIVE BROWSER PRINT (TEXT-BASED & SUPER CEPAT) ---
                 const printFrame = document.createElement('iframe');
                 printFrame.style.position = 'fixed';
                 printFrame.style.right = '0';
@@ -1776,20 +1749,90 @@
 
                 const frameDoc = printFrame.contentWindow.document;
                 frameDoc.open();
+                
+                // --- CSS STYLING BARU UNTUK KOTAK HALUS & GARIS TEGAS ---
                 frameDoc.write(`
                     <!DOCTYPE html>
                     <html>
                         <head>
                             <title>${docTitle}</title>
                             <style>
-                                /* Margin 0 pada @page menyembunyikan header/footer URL bawaan browser */
                                 @page { size: A4 portrait; margin: 0; }
                                 body { 
-                                    margin: 10mm; /* Jarak aman agar konten tidak menempel di ujung kertas */
+                                    margin: 10mm; 
                                     padding: 0; 
                                     -webkit-print-color-adjust: exact !important; 
                                     print-color-adjust: exact !important; 
+                                    box-sizing: border-box;
+                                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                                    color: #0f172a;
                                 }
+                                *, *:before, *:after { box-sizing: border-box; }
+                                
+                                h1, h2, h3, h4, p { margin: 0; }
+                                
+                                .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px; }
+                                .header-title { font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #0f172a; }
+                                .header-subtitle { font-size: 8px; color: #64748b; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+                                .header-info p { font-size: 8px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+                                .header-info span { color: #64748b; font-weight: 600; margin-right: 4px; }
+                                
+                                .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
+                                .section-title { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; display: flex; align-items: flex-end; }
+                                .section-badge { font-size: 10px; font-weight: 800; color: #0f172a; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #94a3b8; }
+                                
+                                /* KOTAK LUAR LEBIH HALUS & MENCEGAH TUMPANG-TINDIH */
+                                .box-wrapper {
+                                    border: 1.5px solid #1e293b;
+                                    border-radius: 6px;
+                                    overflow: hidden;
+                                    margin-bottom: 12px;
+                                }
+                                
+                                /* TABEL DI DALAMNYA LEBIH JELAS */
+                                table { width: 100%; border-collapse: collapse; font-size: 10px; }
+                                th, td { padding: 5px 6px; border: 1px solid #94a3b8; }
+                                
+                                /* Mencegah border ganda di ujung kotak (overlapping) */
+                                tr:first-child th, tr:first-child td { border-top: none; }
+                                tr:last-child th, tr:last-child td { border-bottom: none; }
+                                th:first-child, td:first-child { border-left: none; }
+                                th:last-child, td:last-child { border-right: none; }
+                                
+                                th { background-color: #1e293b; color: white; font-weight: 600; text-align: center; line-height: 1.2; }
+                                .th-sub { font-size: 8px; color: #cbd5e1; font-weight: normal; }
+                                
+                                .bg-light { background-color: #f8fafc; }
+                                .bg-white { background-color: #ffffff; }
+                                .bg-total { background-color: #f1f5f9; }
+                                
+                                .text-center { text-align: center; }
+                                .text-right { text-align: right; }
+                                .text-left { text-align: left; }
+                                
+                                .font-bold { font-weight: 700; color: #0f172a; }
+                                .font-extrabold { font-weight: 800; color: #0f172a; }
+                                .text-muted { color: #475569; }
+                                .uppercase { text-transform: uppercase; }
+                                
+                                .label-cell { background-color: #f1f5f9; font-weight: 600; color: #475569; text-transform: uppercase; width: 15%; }
+                                .val-cell { font-weight: 800; color: #0f172a; }
+                                
+                                /* Area Tanda Tangan */
+                                .signatures { display: flex; justify-content: space-between; padding: 0 10px; page-break-inside: avoid; }
+                                .sign-box { text-align: center; width: 220px; }
+                                .sign-label { font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+                                .sign-img-container { height: 75px; display: flex; align-items: center; justify-content: center; margin: 2px 0; }
+                                .sign-img { max-height: 70px; max-width: 200px; object-fit: contain; }
+                                .sign-name { font-size: 10px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+                                .sign-line { border-bottom: 1.5px solid #0f172a; }
+                                .sign-title { font-size: 10px; font-weight: 800; color: #0f172a; margin-top: 2px; }
+                                
+                                /* Tembusan (Copy To) */
+                                .copy-to { margin-top: 15px; padding: 0 10px; font-size: 10px; font-weight: 600; color: #475569; page-break-inside: avoid; }
+                                .copy-to p { color: #0f172a; font-weight: 800; margin-bottom: 4px; }
+                                .copy-to table { border: none; margin: 0; padding: 0; width: auto; font-size: 10px; }
+                                .copy-to th, .copy-to td { border: none; padding: 0 5px 2px 0; text-align: left; }
                             </style>
                         </head>
                         <body>
@@ -1799,19 +1842,13 @@
                 `);
                 frameDoc.close();
 
-                // Beri waktu sekejap agar browser memuat HTML dan gambar tanda tangan
                 setTimeout(() => {
                     printFrame.contentWindow.focus();
                     printFrame.contentWindow.print();
                     
-                    // Hapus frame sesaat setelah perintah cetak dipanggil
-                    setTimeout(() => {
-                        document.body.removeChild(printFrame);
-                    }, 1000);
-
-                    showToast("Siap! Silakan pilih 'Save as PDF' di jendela cetak.", "success");
+                    setTimeout(() => { document.body.removeChild(printFrame); }, 1000);
                     
-                    // Kembalikan tombol ke semula
+                    showToast("Siap! Silakan pilih 'Save as PDF' di jendela cetak.", "success");
                     btn.innerHTML = originalText;
                     lucide.createIcons({root: btn});
                     btn.disabled = false;
