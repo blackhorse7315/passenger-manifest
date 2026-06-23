@@ -510,7 +510,7 @@
                             </thead>
                             <tbody id="pax-table-body" class="divide-y divide-slate-100 bg-white">
                                 <tr>
-                                    <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic">No passengers added yet.</td>
+                                    <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic">No pax on board.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1722,9 +1722,9 @@
                     <div style="display: flex; justify-content: space-between; padding: 0 10px; page-break-inside: avoid;">
                         <div style="text-align: center; width: 220px;">
                             <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Prepared By,</p>
-                            <!-- Tanda tangan Prepared By -->
-                            <div style="height: 45px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
-                                ${prepSignBase64 ? `<img src="${prepSignBase64}" style="max-height: 40px; max-width: 150px; object-fit: contain;" alt="Prepared By Sign">` : ''}
+                            <!-- Tanda tangan Prepared By diperbesar lagi -->
+                            <div style="height: 75px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
+                                ${prepSignBase64 ? `<img src="${prepSignBase64}" style="max-height: 70px; max-width: 200px; object-fit: contain;" alt="Prepared By Sign">` : ''}
                             </div>
                             <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: 800; color: #0f172a;">${manifest.crew.preparedBy || '&nbsp;'}</p>
                             <div style="border-bottom: 1.5px solid #0f172a;"></div>
@@ -1732,15 +1732,15 @@
                         </div>
                         <div style="text-align: center; width: 220px;">
                             <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Acknowledged By,</p>
-                            <!-- Tanda tangan diperbesar: max-height menjadi 40px -->
-                            <div style="height: 45px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
-                                ${picSignBase64 ? `<img src="${picSignBase64}" style="max-height: 40px; max-width: 150px; object-fit: contain;" alt="PIC Sign">` : ''}
+                            <!-- Tanda tangan PIC diperbesar lagi -->
+                            <div style="height: 75px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
+                                ${picSignBase64 ? `<img src="${picSignBase64}" style="max-height: 70px; max-width: 200px; object-fit: contain;" alt="PIC Sign">` : ''}
                             </div>
                             <!-- Nama PIC -->
                             <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: 800; color: #0f172a;">${manifest.crew.pic || '&nbsp;'}</p>
                             <!-- Garis Tanda Tangan -->
                             <div style="border-bottom: 1.5px solid #0f172a;"></div>
-                            <!-- Teks Pilot in Command dibuat lebih rapat dengan margin-top yang kecil (2px) -->
+                            <!-- Teks Pilot in Command -->
                             <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: 800; color: #0f172a;">Pilot in Command</p>
                         </div>
                     </div>
@@ -2977,7 +2977,7 @@
             countSpan.innerText = currentPassengers.length;
 
             if (currentPassengers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 italic text-sm">No passengers added yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 italic text-sm">No pax on board.</td></tr>`;
                 return;
             }
 
@@ -3223,11 +3223,6 @@
         async function submitManifest(e) {
             e.preventDefault();
             
-            if (currentPassengers.length === 0) {
-                showToast("Please add at least one passenger.", "error");
-                return;
-            }
-
             const btn = document.getElementById('btn-submit-manifest');
             const originalContent = btn.innerHTML;
             btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing...`;
