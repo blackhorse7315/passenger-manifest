@@ -1861,10 +1861,19 @@
                 frameDoc.close();
 
                 setTimeout(() => {
+                    // Simpan title halaman web asli
+                    const originalWindowTitle = document.title;
+                    // Ganti title web sementara sesuai format nama file PDF yang diinginkan
+                    document.title = docTitle;
+
                     printFrame.contentWindow.focus();
                     printFrame.contentWindow.print();
                     
-                    setTimeout(() => { document.body.removeChild(printFrame); }, 1000);
+                    setTimeout(() => { 
+                        // Kembalikan title web ke semula setelah popup print muncul
+                        document.title = originalWindowTitle;
+                        document.body.removeChild(printFrame); 
+                    }, 1000);
                     
                     showToast("Siap! Silakan pilih 'Save as PDF' di jendela cetak.", "success");
                     btn.innerHTML = originalText;
