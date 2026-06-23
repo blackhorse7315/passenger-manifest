@@ -103,7 +103,8 @@
                 <i data-lucide="folder-open" class="w-5 h-5"></i>
                 <span class="font-medium text-sm md:text-base">Data Manifest</span>
             </button>
-            <button onclick="createNewManifest()" id="nav-form" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 hover:bg-brand-800 transition-colors">
+            <!-- Tombol Create Manifest disembunyikan menggunakan class 'hidden' -->
+            <button onclick="createNewManifest()" id="nav-form" class="hidden nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-brand-100 hover:bg-brand-800 transition-colors">
                 <i data-lucide="file-plus-2" class="w-5 h-5"></i>
                 <span class="font-medium text-sm md:text-base">Create Manifest</span>
             </button>
@@ -1761,22 +1762,66 @@
             try {
                 const rawDate = dateStr.replace(/\//g, '');
                 const rawReg = (manifest.acReg || '').replace('-', '');
-                const opt = {
-                    margin:       0.3,
-                    filename:     `Manifest_${rawReg}_${rawDate}.pdf`,
-                    image:        { type: 'jpeg', quality: 1 },
-                    html2canvas:  { scale: 2, useCORS: true, logging: false },
-                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                
-                await html2pdf().set(opt).from(htmlContent).save();
-                showToast("PDF successfully downloaded!", "success");
+                const docTitle = `Manifest_${rawReg}_${rawDate}`;
+
+                // --- METODE BARU: NATIVE BROWSER PRINT (TEXT-BASED & SUPER CEPAT) ---
+                const printFrame = document.createElement('iframe');
+                printFrame.style.position = 'fixed';
+                printFrame.style.right = '0';
+                printFrame.style.bottom = '0';
+                printFrame.style.width = '0';
+                printFrame.style.height = '0';
+                printFrame.style.border = '0';
+                document.body.appendChild(printFrame);
+
+                const frameDoc = printFrame.contentWindow.document;
+                frameDoc.open();
+                frameDoc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                        <head>
+                            <title>${docTitle}</title>
+                            <style>
+                                /* Margin 0 pada @page menyembunyikan header/footer URL bawaan browser */
+                                @page { size: A4 portrait; margin: 0; }
+                                body { 
+                                    margin: 10mm; /* Jarak aman agar konten tidak menempel di ujung kertas */
+                                    padding: 0; 
+                                    -webkit-print-color-adjust: exact !important; 
+                                    print-color-adjust: exact !important; 
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            ${htmlContent}
+                        </body>
+                    </html>
+                `);
+                frameDoc.close();
+
+                // Beri waktu sekejap agar browser memuat HTML dan gambar tanda tangan
+                setTimeout(() => {
+                    printFrame.contentWindow.focus();
+                    printFrame.contentWindow.print();
+                    
+                    // Hapus frame sesaat setelah perintah cetak dipanggil
+                    setTimeout(() => {
+                        document.body.removeChild(printFrame);
+                    }, 1000);
+
+                    showToast("Siap! Silakan pilih 'Save as PDF' di jendela cetak.", "success");
+                    
+                    // Kembalikan tombol ke semula
+                    btn.innerHTML = originalText;
+                    lucide.createIcons({root: btn});
+                    btn.disabled = false;
+                }, 300);
+
             } catch(err) {
-                console.error("PDF generation failed:", err);
-                showToast("Failed to generate PDF.", "error");
-            } finally {
+                console.error("Print generation failed:", err);
+                showToast("Failed to generate document.", "error");
                 btn.innerHTML = originalText;
-                lucide.createIcons({root: btn}); // mengembalikan ikon sesuai struktur awal
+                lucide.createIcons({root: btn});
                 btn.disabled = false;
             }
         }
