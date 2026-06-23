@@ -1553,6 +1553,24 @@
                 return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             };
 
+            // --- FORMAT NAMA PIC & SIC (Menambahkan Rank) ---
+            const formatPilotName = (name) => {
+                if (!name || name === '-' || name === '--') return name || '-';
+                const crewData = globalCrews.find(c => c.name === name);
+                if (crewData && (crewData.rank === 'Capt' || crewData.rank === 'FO')) {
+                    const prefix = crewData.rank === 'Capt' ? 'Capt.' : 'FO.';
+                    // Pastikan agar tidak dobel jika nama sudah mengandung gelar
+                    if (!name.toLowerCase().startsWith('capt') && !name.toLowerCase().startsWith('fo')) {
+                        return `${prefix} ${name}`;
+                    }
+                }
+                return name;
+            };
+
+            const picFormatted = formatPilotName(crew.pic);
+            const sic1Formatted = formatPilotName(crew.sic1);
+            const sic2Formatted = formatPilotName(crew.sic2);
+
             // --- RESTRUKTURISASI BARIS TABEL ---
             let paxRows = '';
             let grandTotalWeight = 0;
@@ -1650,11 +1668,11 @@
                     <table>
                         <tr>
                             <td class="label-cell" style="width: 15%;">PIC</td>
-                            <td class="val-cell" style="width: 18%;">${crew.pic || '-'}</td>
+                            <td class="val-cell" style="width: 18%;">${picFormatted}</td>
                             <td class="label-cell" style="width: 15%;">SIC 1</td>
-                            <td class="val-cell" style="width: 18%;">${crew.sic1 || '-'}</td>
+                            <td class="val-cell" style="width: 18%;">${sic1Formatted}</td>
                             <td class="label-cell" style="width: 15%;">SIC 2</td>
-                            <td class="val-cell" style="width: 19%;">${crew.sic2 || '-'}</td>
+                            <td class="val-cell" style="width: 19%;">${sic2Formatted}</td>
                         </tr>
                         <tr>
                             <td class="label-cell">Eng 1</td>
@@ -1715,7 +1733,7 @@
                         <div class="sign-img-container">
                             ${picSignBase64 ? `<img src="${picSignBase64}" class="sign-img" alt="PIC Sign">` : ''}
                         </div>
-                        <p class="sign-name">${manifest.crew.pic || '&nbsp;'}</p>
+                        <p class="sign-name">${picFormatted !== '-' ? picFormatted : '&nbsp;'}</p>
                         <div class="sign-line"></div>
                         <p class="sign-title">Pilot in Command</p>
                     </div>
