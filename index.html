@@ -1754,7 +1754,10 @@
             try {
                 const rawDate = dateStr.replace(/\//g, '');
                 const rawReg = (manifest.acReg || '').replace('-', '');
-                const docTitle = `Manifest_${rawReg}_${rawDate}`;
+                const rFrom = (manifest.routeFrom || '').toUpperCase();
+                const rTo = (manifest.routeTo || '').toUpperCase();
+                const routeSuffix = (rFrom || rTo) ? `_${rFrom}-${rTo}` : '';
+                const docTitle = `Manifest_${rawReg}_${rawDate}${routeSuffix}`;
 
                 const printFrame = document.createElement('iframe');
                 printFrame.style.position = 'fixed';
