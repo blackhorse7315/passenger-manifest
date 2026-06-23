@@ -1561,22 +1561,24 @@
 
             let paxRows = '';
             let grandTotalWeight = 0;
-            if(paxList.length === 0){
-                paxRows = `<tr><td colspan="7" style="padding: 10px; text-align: center; border-bottom: 1px solid #e2e8f0; font-style: italic; color: #94a3b8; font-size: 11px;">No passengers registered on this flight</td></tr>`;
-            } else {
-                paxList.forEach((p, idx) => {
+            const maxRows = Math.max(18, paxList.length);
+
+            for (let i = 0; i < maxRows; i++) {
+                // Zebra striping style
+                const bg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+                
+                if (i < paxList.length) {
+                    const p = paxList[i];
                     const paxWt = parseFloat(p.weight) || 0;
                     const bagWt = parseFloat(p.bagWt) || 0;
                     const totalWt = paxWt + bagWt;
                     grandTotalWeight += totalWt;
                     
-                    // Zebra striping style
-                    const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
                     const destFormatted = toTitleCase(p.dest || p.destination);
 
                     paxRows += `
                         <tr style="background-color: ${bg};">
-                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 11px;">${idx + 1}</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 11px;">${i + 1}</td>
                             <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; font-size: 11px;">${p.name}</td>
                             <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; font-weight: 600; color: #334155; font-size: 11px; text-transform: uppercase;">${p.seat || p.seatNo || '-'}</td>
                             <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #475569; font-size: 11px;">${p.sex}</td>
@@ -1585,16 +1587,34 @@
                             <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; font-weight: 600; color: #334155; font-size: 11px;">${destFormatted}</td>
                         </tr>
                     `;
-                });
-                
-                paxRows += `
-                    <tr style="background-color: #f1f5f9;">
-                        <td colspan="5" style="padding: 8px 8px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: right; font-weight: 800; color: #0f172a; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Total Payload Weight:</td>
-                        <td style="padding: 8px 8px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; border-right: 1px solid #e2e8f0; text-align: center; font-weight: 800; color: #0f172a; font-size: 11px;">${grandTotalWeight} kg</td>
-                        <td style="border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;"></td>
-                    </tr>
-                `;
+                } else {
+                    // Logic untuk baris kosong
+                    let emptyText = '';
+                    if (i === 0 && paxList.length === 0) {
+                        emptyText = '-No Passenger-';
+                    }
+                    
+                    paxRows += `
+                        <tr style="background-color: ${bg};">
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 11px;">${i + 1}</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; font-weight: 700; color: #94a3b8; font-size: 11px; font-style: italic; text-align: center;">${emptyText || '&nbsp;'}</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0;">&nbsp;</td>
+                        </tr>
+                    `;
+                }
             }
+
+            paxRows += `
+                <tr style="background-color: #f1f5f9;">
+                    <td colspan="5" style="padding: 8px 8px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: right; font-weight: 800; color: #0f172a; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Total Payload Weight:</td>
+                    <td style="padding: 8px 8px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; border-right: 1px solid #e2e8f0; text-align: center; font-weight: 800; color: #0f172a; font-size: 11px;">${grandTotalWeight} kg</td>
+                    <td style="border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;"></td>
+                </tr>
+            `;
 
             // --- STRUKTUR DESAIN PDF MODERN & ELEGAN ---
             // Mengambil Document Number dari Master Data (Item paling akhir/terbaru ditambahkan)
