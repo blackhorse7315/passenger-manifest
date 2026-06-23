@@ -399,7 +399,7 @@
                             Flight Details
                         </h3>
                         <div class="bg-brand-800/50 px-2 md:px-3 py-1 rounded border border-brand-gold/30 flex items-center">
-                            <span class="text-brand-gold font-mono text-xs md:text-sm mr-1">DOC NO:</span>
+                            <span class="text-brand-gold font-mono text-xs md:text-sm mr-1">FORM NO:</span>
                             <input type="text" id="manifest-form-no" list="dl-docnos" value="TWZ-090" class="bg-transparent border-none outline-none text-brand-gold font-mono text-xs md:text-sm w-24 md:w-32 uppercase placeholder-brand-gold/50" placeholder="TWZ-090">
                             <datalist id="dl-docnos"></datalist>
                         </div>
@@ -1597,6 +1597,9 @@
             }
 
             // --- STRUKTUR DESAIN PDF MODERN & ELEGAN ---
+            // Mengambil Document Number dari Master Data (Item paling akhir/terbaru ditambahkan)
+            const masterDocNo = globalDocNos && globalDocNos.length > 0 ? globalDocNos[globalDocNos.length - 1].docNo : 'F/TWA-OPS/008-02';
+
             const htmlContent = `
                 <div style="background-color: white; color: #334155; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 15px 25px;">
                     
@@ -1610,14 +1613,17 @@
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 700; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; font-size: 9px; margin-right: 6px;">DOC NO:</span>${manifest.formNo || '-'}</p>
+                            <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 700; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; font-size: 9px; margin-right: 6px;">DOC NO:</span>${masterDocNo}</p>
                             <p style="margin: 0; font-size: 11px; font-weight: 700; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; font-size: 9px; margin-right: 6px;">DATE:</span>${dateStr}</p>
                         </div>
                     </div>
 
                     <!-- FLIGHT INFO -->
                     <div style="margin-bottom: 15px;">
-                        <h3 style="font-size: 10px; margin: 0 0 6px 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Flight Details</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px;">
+                            <h3 style="font-size: 10px; margin: 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Flight Details</h3>
+                            <span style="font-size: 10px; font-weight: 800; color: #0f172a;"><span style="color: #94a3b8; font-weight: 600; margin-right: 4px;">FORM NO:</span>${manifest.formNo || '-'}</span>
+                        </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 11px; border-radius: 4px; overflow: hidden; border: 1px solid #e2e8f0;">
                             <tr>
                                 <td style="padding: 6px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; width: 15%; color: #64748b; text-transform: uppercase; font-size: 10px;">A/C Type</td>
@@ -1717,6 +1723,17 @@
                             <!-- Teks Pilot in Command dibuat lebih rapat dengan margin-top yang kecil (2px) -->
                             <p style="margin: 2px 0 0 0; font-size: 11px; font-weight: 800; color: #0f172a;">Pilot in Command</p>
                         </div>
+                    </div>
+
+                    <!-- COPY TO -->
+                    <div style="margin-top: 25px; padding: 0 10px; font-size: 9px; font-weight: 600; color: #475569; page-break-inside: avoid;">
+                        <p style="margin: 0 0 4px 0; color: #0f172a; font-weight: 800;">Copy to:</p>
+                        <table style="border: none; margin: 0; padding: 0; font-size: 9px; color: #475569; width: auto;">
+                            <tr><td style="padding: 0 5px 2px 0; vertical-align: top; font-weight: 700;">1.</td><td style="padding: 0 0 2px 0;">President Director</td></tr>
+                            <tr><td style="padding: 0 5px 2px 0; vertical-align: top; font-weight: 700;">2.</td><td style="padding: 0 0 2px 0;">Operation Department</td></tr>
+                            <tr><td style="padding: 0 5px 2px 0; vertical-align: top; font-weight: 700;">3.</td><td style="padding: 0 0 2px 0;">Finance Department</td></tr>
+                            <tr><td style="padding: 0 5px 0 0; vertical-align: top; font-weight: 700;">4.</td><td style="padding: 0;">Flops</td></tr>
+                        </table>
                     </div>
                 </div>
             `;
