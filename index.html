@@ -186,6 +186,42 @@
                     </span>
                 </div>
             </div>
+
+            <!-- Recent Manifests Table in Dashboard -->
+            <div class="mt-8 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg md:text-xl font-semibold text-brand-900">Recent Manifests</h3>
+                    <button onclick="switchView('manifests')" class="text-brand-500 hover:text-brand-700 text-sm font-medium flex items-center gap-1 transition-colors">
+                        View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div id="dashboard-manifest-container" class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-slate-200 w-full hidden">
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
+                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3 md:py-4 border-b">Flight Date</th>
+                                    <th class="px-4 py-3 md:py-4 border-b">A/C Reg (Type)</th>
+                                    <th class="px-4 py-3 md:py-4 border-b">Route</th>
+                                    <th class="px-4 py-3 md:py-4 border-b">Total Pax</th>
+                                    <th class="px-4 py-3 md:py-4 border-b text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-manifest-table-body" class="divide-y divide-slate-100 bg-white">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="dashboard-manifest-empty-state" class="glass-panel rounded-2xl p-8 text-center border-dashed border-2 border-slate-200 block">
+                    <div class="mx-auto w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
+                        <i data-lucide="folder-open" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-slate-900 mb-1">No Manifests Yet</h3>
+                    <p class="text-xs text-slate-500">Create a new manifest to see it here.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Document Number Database View -->
@@ -1327,65 +1363,138 @@
         }
 
         // --- Manifest Logic ---
+        function toggleManifestGroup(groupId, iconId) {
+            const rows = document.querySelectorAll('.' + groupId);
+            const icon = document.getElementById(iconId);
+            let isHidden = false;
+            rows.forEach(row => {
+                row.classList.toggle('hidden');
+                isHidden = row.classList.contains('hidden');
+            });
+            if (icon) {
+                icon.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
+            }
+        }
+
         function updateManifestTable() {
             const container = document.getElementById('manifest-table-container');
             const emptyState = document.getElementById('manifest-empty-state');
             const tbody = document.getElementById('manifest-table-body');
+            
+            const dashContainer = document.getElementById('dashboard-manifest-container');
+            const dashEmptyState = document.getElementById('dashboard-manifest-empty-state');
+            const dashTbody = document.getElementById('dashboard-manifest-table-body');
 
             if (!globalManifests || globalManifests.length === 0) {
-                container.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('block');
+                if(container) {
+                    container.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('block');
+                }
+                if(dashContainer) {
+                    dashContainer.classList.add('hidden');
+                    dashEmptyState.classList.remove('hidden');
+                    dashEmptyState.classList.add('block');
+                }
                 return;
             }
 
-            container.classList.remove('hidden');
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('block');
+            if(container) {
+                container.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('block');
+            }
+            if(dashContainer) {
+                dashContainer.classList.remove('hidden');
+                dashEmptyState.classList.add('hidden');
+                dashEmptyState.classList.remove('block');
+            }
 
-            const sortedManifests = globalManifests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            // Urutkan berdasarkan tanggal terbaru
+            const sortedManifests = globalManifests.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
             
-            let htmlBuffer = [];
-            sortedManifests.forEach(manifest => {
-                let dateStr = manifest.date;
-                try {
-                    const d = new Date(manifest.date);
-                    if (!isNaN(d.getTime())) {
-                        dateStr = d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
-                    }
-                } catch(e){}
+            // Fungsi render dengan Grouping berdasarkan A/C Reg
+            const renderGrouped = (manifestArray, prefix) => {
+                const grouped = {};
+                manifestArray.forEach(m => {
+                    const reg = m.acReg || 'Unknown';
+                    if (!grouped[reg]) grouped[reg] = [];
+                    grouped[reg].push(m);
+                });
 
-                htmlBuffer.push(`
-                    <tr onclick="openManifestDetailModal('${manifest.manifestId}')" class="cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group">
-                        <td class="px-4 py-3 md:py-4 font-medium text-brand-900">${dateStr}</td>
-                        <td class="px-4 py-3 md:py-4 text-slate-600 font-medium">${manifest.acReg} <span class="text-[11px] md:text-xs font-normal text-slate-400 ml-1">(${manifest.acType})</span></td>
-                        <td class="px-4 py-3 md:py-4 text-brand-600 font-semibold flex items-center gap-1.5 uppercase">
-                            ${(manifest.routeFrom || '')} <i data-lucide="arrow-right" class="w-3 h-3 text-slate-400 mt-[2px]"></i> ${(manifest.routeTo || '')}
-                        </td>
-                        <td class="px-4 py-3 md:py-4 text-slate-600">
-                            <span class="px-2.5 py-1 bg-brand-50 border border-brand-100 text-brand-700 rounded-md font-medium text-xs whitespace-nowrap">
-                                ${manifest.paxCount} Pax
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 md:py-4 text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button type="button" onclick="event.stopPropagation(); editManifest('${manifest.manifestId}')" class="text-brand-500 hover:text-brand-700 p-1.5 md:p-2 rounded-lg hover:bg-brand-50 transition-colors" title="Edit Manifest">
-                                    <i data-lucide="edit" class="w-4 h-4"></i>
-                                </button>
-                                <button type="button" onclick="event.stopPropagation(); duplicateManifest('${manifest.manifestId}')" class="text-emerald-500 hover:text-emerald-700 p-1.5 md:p-2 rounded-lg hover:bg-emerald-50 transition-colors" title="Duplicate Manifest">
-                                    <i data-lucide="copy" class="w-4 h-4"></i>
-                                </button>
-                                <button type="button" onclick="event.stopPropagation(); requestDeleteManifest('${manifest.manifestId}')" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors" title="Delete Manifest">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `);
-            });
+                let html = [];
+                for (const reg in grouped) {
+                    const groupManifests = grouped[reg];
+                    const groupId = `group-${prefix}-${reg.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    const iconId = `icon-${groupId}`;
 
-            tbody.innerHTML = htmlBuffer.join('');
-            lucide.createIcons({root: tbody});
+                    // Header Grup (A/C Reg)
+                    html.push(`
+                        <tr class="bg-slate-100 hover:bg-slate-200 cursor-pointer transition-colors border-b border-slate-200" onclick="toggleManifestGroup('${groupId}', '${iconId}')">
+                            <td colspan="5" class="px-4 py-3 font-semibold text-brand-900 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="chevron-down" id="${iconId}" class="w-4 h-4 text-brand-600 transition-transform duration-200 -rotate-90"></i>
+                                    <span>${reg} <span class="text-slate-500 font-normal text-xs ml-1">(${groupManifests.length} Flights)</span></span>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+
+                    // Baris Data per Grup (Hidden by default)
+                    groupManifests.forEach(manifest => {
+                        let dateStr = manifest.date;
+                        try {
+                            const d = new Date(manifest.date);
+                            if (!isNaN(d.getTime())) {
+                                dateStr = d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
+                            }
+                        } catch(e){}
+
+                        const paxCount = manifest.passengers ? manifest.passengers.length : (manifest.paxCount || 0);
+
+                        html.push(`
+                            <tr onclick="openManifestDetailModal('${manifest.manifestId}')" class="${groupId} hidden cursor-pointer hover:bg-brand-50 transition-colors border-b border-slate-50 last:border-0 text-xs md:text-sm group bg-white">
+                                <td class="px-4 py-3 md:py-4 font-medium text-brand-900 pl-8">${dateStr}</td>
+                                <td class="px-4 py-3 md:py-4 text-slate-600 font-medium">${manifest.acReg} <span class="text-[11px] md:text-xs font-normal text-slate-400 ml-1">(${manifest.acType || '-'})</span></td>
+                                <td class="px-4 py-3 md:py-4 text-brand-600 font-semibold flex items-center gap-1.5 uppercase">
+                                    ${(manifest.routeFrom || '')} <i data-lucide="arrow-right" class="w-3 h-3 text-slate-400 mt-[2px]"></i> ${(manifest.routeTo || '')}
+                                </td>
+                                <td class="px-4 py-3 md:py-4 text-slate-600">
+                                    <span class="px-2.5 py-1 bg-brand-50 border border-brand-100 text-brand-700 rounded-md font-medium text-xs whitespace-nowrap">
+                                        ${paxCount} Pax
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 md:py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button type="button" onclick="event.stopPropagation(); editManifest('${manifest.manifestId}')" class="text-brand-500 hover:text-brand-700 p-1.5 md:p-2 rounded-lg hover:bg-brand-50 transition-colors" title="Edit Manifest">
+                                            <i data-lucide="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" onclick="event.stopPropagation(); duplicateManifest('${manifest.manifestId}')" class="text-emerald-500 hover:text-emerald-700 p-1.5 md:p-2 rounded-lg hover:bg-emerald-50 transition-colors" title="Duplicate Manifest">
+                                            <i data-lucide="copy" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" onclick="event.stopPropagation(); requestDeleteManifest('${manifest.manifestId}')" class="text-red-400 hover:text-red-600 p-1.5 md:p-2 rounded-lg hover:bg-red-50 transition-colors" title="Delete Manifest">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                }
+                return html.join('');
+            };
+
+            if(tbody) {
+                tbody.innerHTML = renderGrouped(sortedManifests, 'main');
+                lucide.createIcons({root: tbody});
+            }
+            
+            if(dashTbody) {
+                // Dashboard menampilkan maksimal 15 manifest terbaru untuk mencegah memanjang, lalu digrup.
+                const recentManifests = sortedManifests.slice(0, 15);
+                dashTbody.innerHTML = renderGrouped(recentManifests, 'dash');
+                lucide.createIcons({root: dashTbody});
+            }
         }
 
         function openManifestDetailModal(manifestId) {
