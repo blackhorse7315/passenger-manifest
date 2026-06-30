@@ -466,22 +466,17 @@
                             <div class="flex-1 space-y-1 md:space-y-2">
                                 <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">From</label>
                                 <div class="flex gap-1">
-                                    <!-- Menggunakan list="airports-datalist" dan uppercase otomatis -->
                                     <input type="text" id="route-from" required placeholder="e.g. HLP" list="airports-datalist" oninput="this.value = this.value.toUpperCase()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
-                                    <!-- Tombol Plus membuka Airport Modal -->
                                     <button type="button" onclick="openAirportModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Airport"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                             <div class="flex-1 space-y-1 md:space-y-2">
                                 <label class="text-[11px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">To</label>
                                 <div class="flex gap-1">
-                                    <!-- Menggunakan list="airports-datalist" dan uppercase otomatis -->
                                     <input type="text" id="route-to" required placeholder="e.g. TKG" list="airports-datalist" oninput="this.value = this.value.toUpperCase()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
-                                    <!-- Tombol Plus membuka Airport Modal -->
                                     <button type="button" onclick="openAirportModal()" class="px-2 bg-brand-50 border border-brand-200 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors" title="Add New Airport"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
-                            <!-- Datalist for Airports & Destinations -->
                             <datalist id="airports-datalist"></datalist>
                             <datalist id="dest-datalist"></datalist>
                         </div>
@@ -513,7 +508,6 @@
                         <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">CABIN SERVICE 2</label><input type="text" id="crew-cs2" list="dl-cs" value="-" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500"></div>
                         <div class="space-y-1"><label class="text-[11px] md:text-xs text-slate-500">PREPARED BY</label><input type="text" id="crew-preparedby" list="dl-preparedby" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-brand-500" placeholder="e.g. John Doe"></div>
                         
-                        <!-- Datalists for Crew Auto-suggestions -->
                         <datalist id="dl-pilots"></datalist>
                         <datalist id="dl-engs"></datalist>
                         <datalist id="dl-cs"></datalist>
@@ -1888,25 +1882,36 @@
                             <title>${docTitle}</title>
                             <style>
                                 @page { size: A4 portrait; margin: 0; }
-                                body { 
-                                    margin: 10mm; 
-                                    padding: 0; 
+                                html, body { 
+                                    margin: 0 !important; 
+                                    padding: 0 !important; 
+                                    width: 210mm; 
+                                    height: 296mm; /* Sangat krusial agar terkunci di 1 halaman */
+                                    max-height: 296mm; 
+                                    overflow: hidden !important; /* Memotong konten agar tidak jatuh ke halaman 2 */
                                     -webkit-print-color-adjust: exact !important; 
                                     print-color-adjust: exact !important; 
+                                    -webkit-text-size-adjust: 100% !important; /* Mencegah auto-zoom font di iOS */
                                     box-sizing: border-box;
-                                    /* Mengubah font default menjadi Calibri */
                                     font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
                                     color: #0f172a;
+                                    background: white;
                                 }
                                 *, *:before, *:after { box-sizing: border-box; }
                                 
+                                /* Pembungkus master untuk menahan padding aman tanpa mengubah size body */
+                                .page-container {
+                                    padding: 8mm 10mm; 
+                                    width: 100%;
+                                    height: 100%;
+                                    box-sizing: border-box;
+                                }
+                                
                                 h1, h2, h3, h4, p { margin: 0; }
                                 
-                                .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px; }
+                                .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #1e293b; padding-bottom: 8px; margin-bottom: 10px; }
                                 .header-title { font-family: Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #0f172a; }
-                                /* Subtitle diubah menjadi 11px dan font bawaan (Calibri) */
                                 .header-subtitle { font-size: 11px; color: #64748b; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
-                                /* Info Header (DOC NO/DATE) diubah menjadi 10px dan font bawaan (Calibri) */
                                 .header-info p { font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
                                 .header-info span { font-size: 10px; color: #64748b; font-weight: 600; margin-right: 4px; }
                                 
@@ -1914,19 +1919,16 @@
                                 .section-title { font-size: 12px; color: #475569; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; display: flex; align-items: flex-end; }
                                 .section-badge { font-size: 11px; font-weight: 800; color: #0f172a; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #94a3b8; }
                                 
-                                /* KOTAK LUAR LEBIH HALUS & MENCEGAH TUMPANG-TINDIH */
                                 .box-wrapper {
                                     border: 1.5px solid #1e293b;
                                     border-radius: 6px;
                                     overflow: hidden;
-                                    margin-bottom: 12px;
+                                    margin-bottom: 10px;
                                 }
                                 
-                                /* TABEL DI DALAMNYA LEBIH JELAS */
                                 table { width: 100%; border-collapse: collapse; font-size: 11px; }
-                                th, td { padding: 5px 6px; border: 1px solid #94a3b8; }
+                                th, td { padding: 4px 6px; border: 1px solid #94a3b8; }
                                 
-                                /* Mencegah border ganda di ujung kotak (overlapping) */
                                 tr:first-child th, tr:first-child td { border-top: none; }
                                 tr:last-child th, tr:last-child td { border-bottom: none; }
                                 th:first-child, td:first-child { border-left: none; }
@@ -1951,25 +1953,25 @@
                                 .label-cell { background-color: #f1f5f9; font-weight: 600; color: #475569; text-transform: uppercase; width: 15%; }
                                 .val-cell { font-weight: 800; color: #0f172a; }
                                 
-                                /* Area Tanda Tangan */
-                                .signatures { display: flex; justify-content: space-between; padding: 0 10px; page-break-inside: avoid; }
+                                .signatures { display: flex; justify-content: space-between; padding: 0 10px; page-break-inside: avoid; margin-top: 5px; }
                                 .sign-box { text-align: center; width: 220px; }
                                 .sign-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-                                .sign-img-container { height: 75px; display: flex; align-items: center; justify-content: center; margin: 2px 0; }
-                                .sign-img { max-height: 70px; max-width: 200px; object-fit: contain; }
+                                .sign-img-container { height: 65px; display: flex; align-items: center; justify-content: center; margin: 2px 0; }
+                                .sign-img { max-height: 60px; max-width: 200px; object-fit: contain; }
                                 .sign-name { font-size: 11px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
                                 .sign-line { border-bottom: 1.5px solid #0f172a; }
                                 .sign-title { font-size: 11px; font-weight: 800; color: #0f172a; margin-top: 2px; }
                                 
-                                /* Tembusan (Copy To) */
-                                .copy-to { margin-top: 15px; padding: 0 10px; font-size: 11px; font-weight: 600; color: #475569; page-break-inside: avoid; }
+                                .copy-to { margin-top: 10px; padding: 0 10px; font-size: 11px; font-weight: 600; color: #475569; page-break-inside: avoid; }
                                 .copy-to p { color: #0f172a; font-weight: 800; margin-bottom: 4px; }
                                 .copy-to table { border: none; margin: 0; padding: 0; width: auto; font-size: 11px; }
                                 .copy-to th, .copy-to td { border: none; padding: 0 5px 2px 0; text-align: left; }
                             </style>
                         </head>
                         <body>
-                            ${htmlContent}
+                            <div class="page-container">
+                                ${htmlContent}
+                            </div>
                         </body>
                     </html>
                 `);
